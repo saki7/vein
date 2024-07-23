@@ -1,0 +1,3 @@
+[submodule "modules/variant_view"]
+	path = modules/variant_view
+	url = https://github.com/yaito3014/variant_view.git
