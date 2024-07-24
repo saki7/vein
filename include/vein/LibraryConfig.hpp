@@ -1,13 +1,29 @@
 ﻿#ifndef VEIN_LIBRARY_CONFIG_HPP
 #define VEIN_LIBRARY_CONFIG_HPP
 
-#include <SDKDDKVer.h>
+#include <boost/config.hpp>
 
-#ifdef VEIN_EXPORTS
-# define VEIN_API __declspec(dllexport)
-#else
-# define VEIN_API __declspec(dllimport)
+#if BOOST_WINDOWS
+#include <SDKDDKVer.h>
 #endif
+
+#if VEIN_EXPORTS
+
+# if BOOST_WINDOWS
+#  define VEIN_API __declspec(dllexport)
+# else
+#  define VEIN_API __attribute__((visibility("default")))
+# endif
+
+#else // VEIN_EXPORTS == 0
+
+# if BOOST_WINDOWS
+#  define VEIN_API __declspec(dllimport)
+# else
+#  define VEIN_API
+# endif
+
+#endif // VEIN_EXPORTS
 
 
 namespace vein {

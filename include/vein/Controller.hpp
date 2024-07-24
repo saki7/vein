@@ -1,15 +1,14 @@
 ﻿#ifndef VEIN_CONTROLLER_HPP
 #define VEIN_CONTROLLER_HPP
 
-#include "vein/LibraryConfig.hpp"
-#include "vein/HTML.hpp"
+#include "vein/html/Document.hpp"
 
 #include <boost/url/url_view.hpp>
 
 #include <boost/beast/http.hpp>
-#include <boost/beast/version.hpp>
 
 #include <memory>
+#include <iostream>
 
 
 namespace vein {
@@ -28,14 +27,17 @@ public:
     template <class Body, class Allocator>
     http::message_generator on_request(http::request<Body, http::basic_fields<Allocator>> const& req, boost::urls::url_view url)
     {
-        for (auto const& param : url.params()) {
-            if (!param.has_value) continue;
-            if (auto it = doc_->name_tag.find(param.key); it != doc_->name_tag.end()) {
-                it->second->attrs()["value"] = param.value;
-            }
-        }
+        auto status_code = http::status::internal_server_error;
+        std::string response_body;
 
-        {
+        try {
+            for (auto const& param : url.params()) {
+                if (!param.has_value) continue;
+                if (auto it = doc_->name_tag.find(param.key); it != doc_->name_tag.end()) {
+                    it->second->attrs()["value"] = param.value;
+                }
+            }
+
             auto const form_action = url.path();
             auto const form_it = doc_->form_action_tag.find(form_action);
             if (form_it == doc_->form_action_tag.end()) {
@@ -47,14 +49,22 @@ public:
                 throw std::invalid_argument("callback was not set for this form");
             }
 
-            callback(url.params());
-        }
+            status_code = callback(url.params());
+            response_body = html_->str();
 
-        http::response<http::string_body> res{http::status::internal_server_error, req.version()};
-        res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+        } catch (std::exception const& e) {
+            std::cerr << "uncaught exception while dispatching controller: " << e.what() << std::endl;
+            response_body = "Internal server error";
+
+        } catch (...) {
+            std::cerr << "uncaught and uncatchable exception while dispatching controller" << std::endl;
+            response_body = "Internal server error";
+        }
+        http::response<http::string_body> res{status_code, req.version()};
+        res.set(http::field::server, "vein");
         res.set(http::field::content_type, "text/html");
         res.keep_alive(req.keep_alive());
-        res.body() = html_->str();
+        res.body() = std::move(response_body);
         res.prepare_payload();
         return res;
     }

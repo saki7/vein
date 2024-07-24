@@ -1,7 +1,8 @@
 ﻿#ifndef VEIN_HTML_BUILDER_HPP
 #define VEIN_HTML_BUILDER_HPP
 
-#include "vein/HTML.hpp"
+#include "vein/html/Tag.hpp"
+
 
 namespace vein::html {
 
@@ -58,6 +59,13 @@ public:
     {
     }
 
+    template<class Self, class K>
+    decltype(auto) attr(this Self&& self, K&& k)
+    {
+        self.tag_.attrs().try_emplace(std::forward<K>(k));
+        return std::forward<Self>(self);
+    }
+
     template<class Self, class K, class V>
     decltype(auto) attr(this Self&& self, K&& k, V&& v)
     {
@@ -67,6 +75,17 @@ public:
             std::forward_as_tuple(std::forward<V>(v))
         );
         return std::forward<Self>(self);
+    }
+
+    template<class Self, class V>
+    decltype(auto) id(this Self&& self, V&& v)
+    {
+        return std::forward_like<Self>(self.attr("id", std::forward<V>(v)));
+    }
+    template<class Self, class V>
+    decltype(auto) klass(this Self&& self, V&& v)
+    {
+        return std::forward_like<Self>(self.attr("class", std::forward<V>(v)));
     }
 
     template<class Self, class F>
@@ -123,6 +142,29 @@ public:
         builder.attr(std::forward<K>(k), std::forward<V>(v));
         return builder;
     }
+    template<class K>
+    Builder attr(K&& k) const
+    {
+        Builder builder{type};
+        builder.attr(std::forward<K>(k));
+        return builder;
+    }
+
+    template<class V>
+    Builder id(V&& v) const
+    {
+        Builder builder{type};
+        builder.id(std::forward<V>(v));
+        return builder;
+    }
+    
+    template<class V>
+    Builder klass(V&& v) const
+    {
+        Builder builder{type};
+        builder.klass(std::forward<V>(v));
+        return builder;
+    }
 
     operator Builder() const
     {
@@ -156,9 +198,11 @@ using li     = PredefBuilder<TagType::li>;
 using form   = PredefBuilder<TagType::form>;
 using input  = PredefBuilder<TagType::input>;
 using button = PredefBuilder<TagType::button>;
+using main   = PredefBuilder<TagType::main>;
 using body   = PredefBuilder<TagType::body>;
 using link   = PredefBuilder<TagType::link>;
 using style  = PredefBuilder<TagType::style>;
+using script = PredefBuilder<TagType::script>;
 using meta   = PredefBuilder<TagType::meta>;
 using head   = PredefBuilder<TagType::head>;
 using html   = PredefBuilder<TagType::html>;

@@ -11,6 +11,7 @@
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
 
+#include <filesystem>
 #include <string>
 #include <unordered_map>
 
@@ -26,7 +27,7 @@ using PathMatcher = std::string;
 class Router
 {
 public:
-    explicit Router(std::string const& doc_root);
+    explicit Router(std::filesystem::path const& public_root);
 
     ~Router();
 
@@ -58,8 +59,6 @@ public:
 #endif
         return result;
     }
-
-    std::string const& doc_root() const noexcept { return doc_root_; }
 
     void route(PathMatcher matcher, std::unique_ptr<Controller> controller);
 
@@ -137,7 +136,21 @@ public:
         // file response
 
         // Build the path to the requested file
-        std::string path = path_cat(doc_root_, req.target());
+
+
+        do {
+            auto const slash_pos = req.target().find_last_of('/');
+            if (slash_pos == boost::core::string_view::npos) break;
+            if (slash_pos == req.target().size() - 1) break;
+
+            if (req.target()[slash_pos + 1] == '_') {
+                // partial template
+                return not_found(req.target());
+            }
+        } while (false);
+
+
+        std::string path = path_cat(public_root_.string(), req.target());
         if (req.target().back() == '/') {
             path.append("index.html");
         }
@@ -184,7 +197,7 @@ public:
 
 
 private:
-    std::string doc_root_ = ".";
+    std::filesystem::path public_root_ = ".";
 
     std::unordered_map<PathMatcher, std::unique_ptr<Controller>> controllers_;
 };

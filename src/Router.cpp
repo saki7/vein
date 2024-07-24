@@ -6,8 +6,8 @@
 
 namespace vein {
 
-Router::Router(std::string const& doc_root)
-    : doc_root_(doc_root)
+Router::Router(std::filesystem::path const& public_root)
+    : public_root_(public_root)
 {}
 
 Router::~Router() = default;

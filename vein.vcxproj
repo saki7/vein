@@ -12,7 +12,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Controller.cpp" />
-    <ClCompile Include="src\HTML.cpp" />
+    <ClCompile Include="src\html\Tag.cpp" />
+    <ClCompile Include="src\html\Template.cpp" />
     <ClCompile Include="src\HTTPSession.cpp" />
     <ClCompile Include="src\Listener.cpp" />
     <ClCompile Include="src\pch.cpp">
@@ -26,8 +27,11 @@
     <ClInclude Include="include\vein\Controller.hpp" />
     <ClInclude Include="include\vein\Error.hpp" />
     <ClInclude Include="include\vein\File.hpp" />
-    <ClInclude Include="include\vein\HTML.hpp" />
+    <ClInclude Include="include\vein\Hash.hpp" />
     <ClInclude Include="include\vein\html\Builder.hpp" />
+    <ClInclude Include="include\vein\html\Document.hpp" />
+    <ClInclude Include="include\vein\html\Tag.hpp" />
+    <ClInclude Include="include\vein\html\Template.hpp" />
     <ClInclude Include="include\vein\HTTPSession.hpp" />
     <ClInclude Include="include\vein\LibraryConfig.hpp" />
     <ClInclude Include="include\vein\Listener.hpp" />

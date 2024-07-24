@@ -19,6 +19,9 @@
     <Filter Include="Header Files\vein\html">
       <UniqueIdentifier>{53663097-aa76-4128-a670-ed38c5c9c3d6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\html">
+      <UniqueIdentifier>{6be6784e-8941-4475-bcf5-44924e9f73d3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\pch.cpp">
@@ -30,9 +33,6 @@
     <ClCompile Include="src\HTTPSession.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\HTML.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Listener.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -41,6 +41,12 @@
     </ClCompile>
     <ClCompile Include="src\Router.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\html\Template.cpp">
+      <Filter>Source Files\html</Filter>
+    </ClCompile>
+    <ClCompile Include="src\html\Tag.cpp">
+      <Filter>Source Files\html</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -71,13 +77,22 @@
     <ClInclude Include="include\vein\Listener.hpp">
       <Filter>Header Files\vein</Filter>
     </ClInclude>
-    <ClInclude Include="include\vein\HTML.hpp">
-      <Filter>Header Files\vein</Filter>
-    </ClInclude>
     <ClInclude Include="include\vein\Controller.hpp">
       <Filter>Header Files\vein</Filter>
     </ClInclude>
     <ClInclude Include="include\vein\html\Builder.hpp">
+      <Filter>Header Files\vein\html</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vein\Hash.hpp">
+      <Filter>Header Files\vein</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vein\html\Template.hpp">
+      <Filter>Header Files\vein\html</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vein\html\Tag.hpp">
+      <Filter>Header Files\vein\html</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vein\html\Document.hpp">
       <Filter>Header Files\vein\html</Filter>
     </ClInclude>
   </ItemGroup>
