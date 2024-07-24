@@ -5,6 +5,7 @@
 #include "yk/util/overloaded.hpp"
 #include "yk/variant_view.hpp"
 
+#include <regex>
 #include <algorithm>
 #include <ranges>
 #include <format>
@@ -37,8 +38,11 @@ std::string Tag::str() const
                     },
                     [&](std::string const& v) {
                         res += "=\"";
-                        res += v;
-                        res += '"'; // TODO: escape quotes
+
+                        static std::regex const quotes_rgx{R"(")"};
+                        res += std::regex_replace(v, quotes_rgx, "&quot;");
+
+                        res += '"';
                     }
                 }, v);
                 return res;
