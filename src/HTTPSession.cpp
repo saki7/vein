@@ -18,14 +18,16 @@ void HTTPSession::on_read(beast::error_code ec, std::size_t bytes_transferred)
     if (ec)
         return fail(ec, "read");
 
+#if VEIN_ENABLE_WEBSOCKET
     // See if it is a WebSocket Upgrade
     if (websocket::is_upgrade(parser_->get())) {
         // Create a websocket session, transferring ownership
         // of both the socket and the HTTP request.
-        std::make_shared<websocket_session>(
+        std::make_shared<WebSocketSession>(
             stream_.release_socket())->do_accept(parser_->release());
         return;
     }
+#endif
 
     // Send the response
     queue_write(router_->handle_request(parser_->release()));

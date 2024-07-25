@@ -21,13 +21,13 @@ using tcp = boost::asio::ip::tcp;
 
 
 // Echoes back all received WebSocket messages
-class websocket_session : public std::enable_shared_from_this<websocket_session>
+class WebSocketSession : public std::enable_shared_from_this<WebSocketSession>
 {
     websocket::stream<beast::tcp_stream> ws_;
     beast::flat_buffer buffer_;
 
 public:
-    explicit websocket_session(tcp::socket&& socket)
+    explicit WebSocketSession(tcp::socket&& socket)
         : ws_(std::move(socket))
     {
     }
@@ -53,7 +53,7 @@ public:
         ws_.async_accept(
             req,
             beast::bind_front_handler(
-                &websocket_session::on_accept,
+                &WebSocketSession::on_accept,
                 shared_from_this()));
     }
 
@@ -74,7 +74,7 @@ private:
         ws_.async_read(
             buffer_,
             beast::bind_front_handler(
-                &websocket_session::on_read,
+                &WebSocketSession::on_read,
                 shared_from_this()));
     }
 
@@ -97,7 +97,7 @@ private:
         ws_.async_write(
             buffer_.data(),
             beast::bind_front_handler(
-                &websocket_session::on_write,
+                &WebSocketSession::on_write,
                 shared_from_this()));
     }
 
