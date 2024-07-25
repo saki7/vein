@@ -12,11 +12,15 @@ void HTTPSession::on_read(beast::error_code ec, std::size_t bytes_transferred)
     boost::ignore_unused(bytes_transferred);
 
     // This means they closed the connection
-    if (ec == http::error::end_of_stream)
+    if (ec == http::error::end_of_stream) {
         return do_close();
-
-    if (ec)
+    }
+    if (ec == beast::error::timeout) {
+        return; // prevent printing "The socket was closed due to a timeout"
+    }
+    if (ec) {
         return fail(ec, "read");
+    }
 
 #if VEIN_ENABLE_WEBSOCKET
     // See if it is a WebSocket Upgrade
