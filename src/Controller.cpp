@@ -19,6 +19,10 @@ void Controller::set_html(std::unique_ptr<html::Tag> html)
         [&](this auto&& self, html::Tag& tag) -> void {
             using html::TagType;
 
+            if (tag.type() == TagType::title) {
+                doc_->title_tag = &tag;
+            }
+
             if (auto const it = tag.attrs().find("name"); it != tag.attrs().end()) {
                 doc_->name_tag.emplace(std::get<std::string>(it->second), &tag);
             }
@@ -49,5 +53,14 @@ void Controller::set_html(std::unique_ptr<html::Tag> html)
     }(html_->contents());
 }
 
+void Controller::set_title(std::string title)
+{
+    if (!doc_->title_tag) {
+        throw std::logic_error{"cannot set title because this html does not have title tag"};
+    }
+
+    doc_->title_tag->contents().clear();
+    doc_->title_tag->append_string_content(std::move(title));
+}
 
 }

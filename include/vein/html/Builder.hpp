@@ -6,11 +6,8 @@
 
 namespace vein::html {
 
-class Builder;
-
 template<TagType type>
 class PredefBuilder;
-
 
 template<class T>
 struct make_tag_content
@@ -27,38 +24,33 @@ struct make_tag_content
     }
 };
 
-template<>
-struct make_tag_content<Builder>
-{
-    template<class T>
-    static void apply(Tag& tag, T&& builder)
-    {
-        tag.contents().emplace_back(std::make_unique<TagContent>(std::in_place_type<Tag>, std::forward_like<T>(builder.tag_)));
-    }
-};
-
 template<TagType type>
 struct make_tag_content<PredefBuilder<type>>
 {
     template<class T>
     static void apply(Tag& tag, T&& predef_builder)
     {
-        tag.contents().emplace_back(std::make_unique<TagContent>(std::in_place_type<Tag>, std::forward_like<T>(predef_builder.builder_.tag_)));
+        tag.contents().emplace_back(std::make_unique<TagContent>(std::in_place_type<Tag>, std::forward_like<T>(predef_builder.tag_)));
     }
 };
 
-class Builder
+template<TagType type>
+class PredefBuilder
 {
     template<class T>
     friend struct make_tag_content;
 
 public:
-    template<class... Args>
-    explicit Builder(Args&&... args)
-        : tag_{std::forward<Args>(args)...}
-    {
-    }
+    PredefBuilder() = default;
 
+    template<class... Builders>
+        requires(sizeof...(Builders) >= 1)
+    PredefBuilder(Builders&&... builders)
+        : tag_{type}
+    {
+        (*this)(std::forward<Builders>(builders)...);
+    }
+    
     template<class Self, class K>
     decltype(auto) attr(this Self&& self, K&& k)
     {
@@ -114,78 +106,7 @@ public:
     }
 
 private:
-    Tag tag_;
-};
-
-template<TagType type>
-class PredefBuilder
-{
-    template<class T>
-    friend struct make_tag_content;
-
-
-public:
-    PredefBuilder() = default;
-
-    template<class... Builders>
-        requires(sizeof...(Builders) >= 1)
-    PredefBuilder(Builders&&... builders)
-        : builder_{type}
-    {
-        builder_(std::forward<Builders>(builders)...);
-    }
-
-    template<class K, class V>
-    Builder attr(K&& k, V&& v) const
-    {
-        Builder builder{type};
-        builder.attr(std::forward<K>(k), std::forward<V>(v));
-        return builder;
-    }
-    template<class K>
-    Builder attr(K&& k) const
-    {
-        Builder builder{type};
-        builder.attr(std::forward<K>(k));
-        return builder;
-    }
-
-    template<class V>
-    Builder id(V&& v) const
-    {
-        Builder builder{type};
-        builder.id(std::forward<V>(v));
-        return builder;
-    }
-    
-    template<class V>
-    Builder klass(V&& v) const
-    {
-        Builder builder{type};
-        builder.klass(std::forward<V>(v));
-        return builder;
-    }
-
-    operator Builder() const
-    {
-        return Builder{type};
-    }
-
-    template<class... Args>
-    Builder operator()(Args&&... args) const
-    {
-        Builder builder{type};
-        builder(std::forward<Args>(args)...);
-        return builder;
-    }
-
-    operator std::unique_ptr<Tag>()
-    {
-        return builder_;
-    }
-
-private:
-    Builder builder_;
+    Tag tag_{type};
 };
 
 namespace builders {
@@ -204,6 +125,7 @@ using link   = PredefBuilder<TagType::link>;
 using style  = PredefBuilder<TagType::style>;
 using script = PredefBuilder<TagType::script>;
 using meta   = PredefBuilder<TagType::meta>;
+using title  = PredefBuilder<TagType::title>;
 using head   = PredefBuilder<TagType::head>;
 using html   = PredefBuilder<TagType::html>;
 

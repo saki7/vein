@@ -13,6 +13,8 @@ namespace vein::html {
 
 struct Document
 {
+    Tag* title_tag = nullptr;
+
     std::unordered_map<std::string, Tag*, string_hash, std::equal_to<>>
     name_tag, id_tag, form_action_tag;
 };

@@ -29,6 +29,7 @@ public:
     ~Controller();
 
     void set_html(std::unique_ptr<html::Tag> html);
+    void set_title(std::string title);
 
     template <class Body, class Allocator>
     http::message_generator on_request(http::request<Body, http::basic_fields<Allocator>> const& req, boost::urls::url_view url)

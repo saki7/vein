@@ -43,6 +43,7 @@ enum class TagType : int
     style,
     script,
     meta,
+    title,
     head,
     html,
     _last_ = html,
@@ -63,6 +64,7 @@ inline constexpr auto tag_type_names_v = std::array{
     "style",
     "script",
     "meta",
+    "title",
     "head",     
     "html",
 };
