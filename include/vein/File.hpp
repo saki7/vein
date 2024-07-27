@@ -3,47 +3,51 @@
 
 #include "vein/LibraryConfig.hpp"
 
-#include <boost/beast/core/string_type.hpp>
-#include <boost/beast/core/string.hpp>
+#include <boost/locale/conversion.hpp>
+#include <boost/locale/generator.hpp>
+#include <boost/locale/util.hpp>
+
+#include <filesystem>
+#include <string_view>
 
 
 namespace vein {
 
-inline boost::beast::string_view mime_type(boost::beast::string_view path)
+struct [[nodiscard]] MIME
 {
-    using boost::beast::iequals;
-    auto const ext = [&path] {
-        auto const pos = path.rfind(".");
-        if (pos == boost::beast::string_view::npos) {
-            return boost::beast::string_view{};
-        }
-        return path.substr(pos);
-    }();
+    std::string_view type;
+    bool is_already_compressed = false;
+};
 
-    if (iequals(ext, ".htm"))  return "text/html";
-    if (iequals(ext, ".html")) return "text/html";
-    if (iequals(ext, ".php"))  return "text/html";
-    if (iequals(ext, ".css"))  return "text/css";
-    if (iequals(ext, ".txt"))  return "text/plain";
-    if (iequals(ext, ".js"))   return "application/javascript";
-    if (iequals(ext, ".json")) return "application/json";
-    if (iequals(ext, ".xml"))  return "application/xml";
-    if (iequals(ext, ".swf"))  return "application/x-shockwave-flash";
-    if (iequals(ext, ".flv"))  return "video/x-flv";
-    if (iequals(ext, ".png"))  return "image/png";
-    if (iequals(ext, ".jpe"))  return "image/jpeg";
-    if (iequals(ext, ".jpeg")) return "image/jpeg";
-    if (iequals(ext, ".jpg"))  return "image/jpeg";
-    if (iequals(ext, ".gif"))  return "image/gif";
-    if (iequals(ext, ".bmp"))  return "image/bmp";
-    if (iequals(ext, ".ico"))  return "image/vnd.microsoft.icon";
-    if (iequals(ext, ".tiff")) return "image/tiff";
-    if (iequals(ext, ".tif"))  return "image/tiff";
-    if (iequals(ext, ".svg"))  return "image/svg+xml";
-    if (iequals(ext, ".svgz")) return "image/svg+xml";
-    return "application/text";
+inline MIME mime_type(std::filesystem::path const& path)
+{
+    boost::locale::generator gen;
+    gen.locale_cache_enabled(true);
+    auto const loc = gen(boost::locale::util::get_system_locale());
+    auto const ext = boost::locale::to_lower(path.extension().string(), loc);
+
+    if (ext == ".htm")  return {"text/html; charset=utf-8"};
+    if (ext == ".html") return {"text/html; charset=utf-8"};
+    if (ext == ".php")  return {"text/html; charset=utf-8"};
+    if (ext == ".css")  return {"text/css; charset=utf-8"};
+    if (ext == ".txt")  return {"text/plain; charset=utf-8"};
+    if (ext == ".js")   return {"application/javascript; charset=utf-8"};
+    if (ext == ".json") return {"application/json; charset=utf-8"};
+    if (ext == ".xml")  return {"application/xml; charset=utf-8"};
+    if (ext == ".flv")  return {"video/x-flv", true};
+    if (ext == ".png")  return {"image/png", true};
+    if (ext == ".jpe")  return {"image/jpeg", true};
+    if (ext == ".jpeg") return {"image/jpeg", true};
+    if (ext == ".jpg")  return {"image/jpeg", true};
+    if (ext == ".gif")  return {"image/gif", true};
+    if (ext == ".bmp")  return {"image/bmp"};
+    if (ext == ".ico")  return {"image/vnd.microsoft.icon", true};
+    if (ext == ".tiff") return {"image/tiff", true};
+    if (ext == ".tif")  return {"image/tiff", true};
+    if (ext == ".svg")  return {"image/svg+xml"};
+    if (ext == ".svgz") return {"image/svg+xml"};
+    return {"application/text"};
 }
-
 
 }
 

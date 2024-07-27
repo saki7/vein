@@ -4,14 +4,22 @@
 #include "vein/LibraryConfig.hpp"
 #include "vein/Controller.hpp"
 #include "vein/File.hpp"
+#include "vein/Allocator.hpp"
 
 #include <boost/url.hpp>
 #include <boost/url/parse.hpp>
 
 #include <boost/beast/http.hpp>
-#include <boost/beast/version.hpp>
+#include <boost/beast/http/vector_body.hpp>
+
+#include <boost/iostreams/filter/gzip.hpp>
+#include <boost/iostreams/filtering_stream.hpp>
+#include <boost/iostreams/device/file.hpp>
+#include <boost/iostreams/copy.hpp>
 
 #include <filesystem>
+#include <fstream>
+#include <vector>
 #include <string>
 #include <unordered_map>
 
@@ -73,7 +81,7 @@ public:
         // Returns a bad request response
         auto const bad_request = [&req](beast::string_view why) {
             http::response<http::string_body> res{http::status::bad_request, req.version()};
-            res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+            res.set(http::field::server, "vein");
             res.set(http::field::content_type, "text/html");
             res.keep_alive(req.keep_alive());
             res.body() = std::string(why);
@@ -84,7 +92,7 @@ public:
         // Returns a not found response
         auto const not_found = [&req](beast::string_view target) {
             http::response<http::string_body> res{http::status::not_found, req.version()};
-            res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+            res.set(http::field::server, "vein");
             res.set(http::field::content_type, "text/html");
             res.keep_alive(req.keep_alive());
             res.body() = "The resource '" + std::string(target) + "' was not found.";
@@ -95,7 +103,7 @@ public:
         // Returns a server error response
         auto const server_error = [&req](beast::string_view what) {
             http::response<http::string_body> res{http::status::internal_server_error, req.version()};
-            res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+            res.set(http::field::server, "vein");
             res.set(http::field::content_type, "text/html");
             res.keep_alive(req.keep_alive());
             res.body() = "An error occurred: '" + std::string(what) + "'";
@@ -150,49 +158,83 @@ public:
         } while (false);
 
 
-        std::string path = path_cat(public_root_.string(), req.target());
+        auto rel_path = req.target();
+        if (!rel_path.empty() && rel_path[0] == '/') {
+            rel_path.remove_prefix(1);
+        }
+
+        std::filesystem::path path = public_root_ / std::string{rel_path};
         if (req.target().back() == '/') {
-            path.append("index.html");
+            path /= "index.html";
         }
+        auto const mime = mime_type(path);
 
-        // Attempt to open the file
-        beast::error_code ec;
-        http::file_body::value_type body;
-        body.open(path.c_str(), beast::file_mode::scan, ec);
+        if (mime.is_already_compressed) {
+            // Attempt to open the file
+            beast::error_code ec;
+            http::file_body::value_type body;
+            body.open(path.string().c_str(), beast::file_mode::scan, ec);
 
-        // Handle the case where the file doesn't exist
-        if (ec == beast::errc::no_such_file_or_directory) {
-            return not_found(req.target());
-        }
+            // Handle the case where the file doesn't exist
+            if (ec == beast::errc::no_such_file_or_directory) {
+                return not_found(req.target());
+            }
 
-        // Handle an unknown error
-        if (ec) {
-            return server_error(ec.message());
-        }
+            // Handle an unknown error
+            if (ec) {
+                return server_error(ec.message());
+            }
 
-        // Cache the size since we need it after the move
-        auto const size = body.size();
+            // Cache the size since we need it after the move
+            auto const size = body.size();
 
-        // Respond to HEAD request
-        if (req.method() == http::verb::head) {
-            http::response<http::empty_body> res{http::status::ok, req.version()};
-            res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-            res.set(http::field::content_type, mime_type(path));
+            if (req.method() == http::verb::head) {
+                http::response<http::empty_body> res{http::status::ok, req.version()};
+                res.set(http::field::server, "vein");
+                res.set(http::field::content_type, mime.type);
+                res.content_length(size);
+                res.keep_alive(req.keep_alive());
+                return res;
+            }
+
+            http::response<http::file_body> res{
+                std::piecewise_construct,
+                std::make_tuple(std::move(body)),
+                std::make_tuple(http::status::ok, req.version())
+            };
+            res.set(http::field::server, "vein");
+            res.set(http::field::content_type, mime.type);
             res.content_length(size);
             res.keep_alive(req.keep_alive());
             return res;
-        }
 
-        // Respond to GET request
-        http::response<http::file_body> res{
-            std::piecewise_construct,
-            std::make_tuple(std::move(body)),
-            std::make_tuple(http::status::ok, req.version())};
-        res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-        res.set(http::field::content_type, mime_type(path));
-        res.content_length(size);
-        res.keep_alive(req.keep_alive());
-        return res;
+        } else {
+            http::response<http::vector_body<char, default_init_allocator<char>>> res{http::status::ok, req.version()};
+            res.set(http::field::server, "vein");
+            res.set(http::field::content_type, mime.type);
+            res.keep_alive(req.keep_alive());
+            
+            try {
+                std::ifstream file{path.string(), std::ios::in | std::ios::binary};
+                file.exceptions(std::ios::failbit | std::ios::badbit);
+
+                boost::iostreams::filtering_istream is;
+
+                is.push(boost::iostreams::zlib_compressor());
+                is.push(file);
+                // TODO: reserve?
+                boost::iostreams::copy(is, std::back_inserter(res.body()));
+                
+                res.set(http::field::content_encoding, "deflate");
+
+            } catch (std::ios::failure const& /*e*/) {
+                //std::cerr << e.what(); << std::endl;
+                return not_found(req.target());
+            }
+
+            res.prepare_payload();
+            return res;
+        }
     }
 
 

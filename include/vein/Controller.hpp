@@ -2,10 +2,16 @@
 #define VEIN_CONTROLLER_HPP
 
 #include "vein/html/Document.hpp"
+#include "vein/Allocator.hpp"
 
 #include <boost/url/url_view.hpp>
 
 #include <boost/beast/http.hpp>
+#include <boost/beast/http/vector_body.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
+#include <boost/iostreams/filtering_stream.hpp>
+#include <boost/iostreams/device/array.hpp>
+#include <boost/iostreams/copy.hpp>
 
 #include <memory>
 #include <iostream>
@@ -60,11 +66,27 @@ public:
             std::cerr << "uncaught and uncatchable exception while dispatching controller" << std::endl;
             response_body = "Internal server error";
         }
-        http::response<http::string_body> res{status_code, req.version()};
+
+        http::response<http::vector_body<char, default_init_allocator<char>>> res{status_code, req.version()};
         res.set(http::field::server, "vein");
-        res.set(http::field::content_type, "text/html");
+        res.set(http::field::content_type, "text/html; charset=utf-8");
         res.keep_alive(req.keep_alive());
-        res.body() = std::move(response_body);
+
+        if (response_body.empty()) {
+            res.prepare_payload();
+            return res;
+        }
+
+        res.set(http::field::content_encoding, "deflate");
+        {
+            boost::iostreams::array_source src{response_body.data(), response_body.size()};
+            boost::iostreams::filtering_istream is;
+            is.push(boost::iostreams::zlib_compressor());
+            is.push(src);
+
+            res.body().reserve(response_body.size() / 8);
+            boost::iostreams::copy(is, std::back_inserter(res.body()));
+        }
         res.prepare_payload();
         return res;
     }
