@@ -2,8 +2,8 @@
 
 #include "vein/html/Tag.hpp"
 
-#include "yk/util/overloaded.hpp"
-#include "yk/variant_view.hpp"
+#include <yk/util/overloaded.hpp>
+#include <yk/variant_view/boost.hpp>
 
 #include <regex>
 #include <algorithm>
@@ -23,7 +23,7 @@ std::string Tag::str() const
         res = std::format("<{}>", type_str);
 
     } else {
-        auto const attrs_str = attrs_ | 
+        auto const attrs_str = attrs_ |
             std::views::transform([](auto const& kv) {
                 auto const& [k, v] = kv;
 
@@ -64,7 +64,7 @@ std::string Tag::str() const
                     res += str;
                 },
                 [&](Tag const& tag) {
-                    res += tag.str();  
+                    res += tag.str();
                 },
             }, *content);
         }

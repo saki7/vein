@@ -3,7 +3,7 @@
 
 #include "vein/Hash.hpp"
 
-#include "yk/util/overloaded.hpp"
+#include <yk/util/overloaded.hpp>
 
 #include <boost/beast/http/status.hpp>
 #include <boost/url/params_view.hpp>
@@ -65,7 +65,7 @@ inline constexpr auto tag_type_names_v = std::array{
     "script",
     "meta",
     "title",
-    "head",     
+    "head",
     "html",
 };
 
