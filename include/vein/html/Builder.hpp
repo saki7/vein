@@ -16,10 +16,10 @@ struct make_tag_content
     static void apply(Tag& tag, T&& value)
     {
         if constexpr (std::is_convertible_v<T, std::string>) {
-            tag.contents().emplace_back(std::make_unique<TagContent>(std::in_place_type<std::string>, std::forward<T>(value)));
+            tag.contents().emplace_back(TagContent{std::string{std::forward<T>(value)}});
 
         } else {
-            tag.contents().emplace_back(std::make_unique<TagContent>(std::in_place_type<std::remove_cvref_t<T>>, std::forward<T>(value)));
+            tag.contents().emplace_back(TagContent{std::remove_cvref_t<T>{std::forward<T>(value)}});
         }
     }
 };
@@ -30,7 +30,7 @@ struct make_tag_content<PredefBuilder<type>>
     template<class T>
     static void apply(Tag& tag, T&& predef_builder)
     {
-        tag.contents().emplace_back(std::make_unique<TagContent>(std::in_place_type<Tag>, std::forward_like<T>(predef_builder.tag_)));
+        tag.contents().emplace_back(Tag{std::forward_like<T>(predef_builder.tag_)});
     }
 };
 
@@ -50,7 +50,7 @@ public:
     {
         (*this)(std::forward<Builders>(builders)...);
     }
-    
+
     template<class Self, class K>
     decltype(auto) attr(this Self&& self, K&& k)
     {

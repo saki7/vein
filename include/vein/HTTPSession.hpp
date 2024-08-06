@@ -57,13 +57,6 @@ public:
     }
 
 private:
-    // Return a response for the given request.
-    //
-    // The concrete type of the response message (which depends on the
-    // request), is type-erased in message_generator.
-    template <class Body, class Allocator>
-    http::message_generator handle_request(http::request<Body, http::basic_fields<Allocator>>&& req);
-
     void
         do_read()
     {

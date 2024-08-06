@@ -3,6 +3,8 @@
 #include "vein/Controller.hpp"
 
 #include <yk/util/overloaded.hpp>
+#include <yk/variant/boost.hpp>
+#include <yk/variant/std.hpp>
 
 
 namespace vein {
@@ -10,7 +12,7 @@ namespace vein {
 Controller::Controller() = default;
 Controller::~Controller() = default;
 
-void Controller::set_html(std::unique_ptr<html::Tag> html)
+void Controller::reset_html(std::unique_ptr<html::Tag>& html_, std::unique_ptr<html::Document>& doc_, std::unique_ptr<html::Tag> html)
 {
     html_ = std::move(html);
     doc_ = std::make_unique<html::Document>();
@@ -44,9 +46,9 @@ void Controller::set_html(std::unique_ptr<html::Tag> html)
             }
             self(tag.contents());
         },
-        [](this auto&& self, std::vector<std::unique_ptr<html::TagContent>>& contents) -> void {
+        [](this auto&& self, std::vector<html::TagContent>& contents) -> void {
             for (auto& content : contents) {
-                std::visit(self, *content);
+                yk::visit<void>(self, content);
             }
         },
         [](std::string const&) {},
@@ -55,12 +57,14 @@ void Controller::set_html(std::unique_ptr<html::Tag> html)
 
 void Controller::set_title(std::string title)
 {
-    if (!doc_->title_tag) {
+    reset_local_doc();
+
+    if (!local_doc()->title_tag) {
         throw std::logic_error{"cannot set title because this html does not have title tag"};
     }
 
-    doc_->title_tag->contents().clear();
-    doc_->title_tag->append_string_content(std::move(title));
+    local_doc()->title_tag->contents().clear();
+    local_doc()->title_tag->append_string_content(std::move(title));
 }
 
 }

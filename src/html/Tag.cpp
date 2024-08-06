@@ -66,7 +66,7 @@ std::string Tag::str() const
                 [&](Tag const& tag) {
                     res += tag.str();
                 },
-            }, *content);
+            }, content);
         }
     }
 

@@ -14,6 +14,8 @@ Router::~Router() = default;
 
 void Router::route(PathMatcher matcher, std::unique_ptr<Controller> controller)
 {
+    controller->clear_local_doc();
+
     controllers_.emplace(
         std::piecewise_construct,
         std::forward_as_tuple(std::move(matcher)),

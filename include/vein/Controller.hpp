@@ -25,29 +25,59 @@ namespace http = beast::http;
 class Controller
 {
 public:
-    Controller();
-    ~Controller();
+    virtual ~Controller();
 
-    void set_html(std::unique_ptr<html::Tag> html);
+    void set_html(std::unique_ptr<html::Tag> html)
+    {
+        reset_html(html_, doc_, std::move(html));
+    }
+
+    void clear_local_doc()
+    {
+        local_html().reset();
+        local_doc().reset();
+    }
+
     void set_title(std::string title);
 
+    template<class F>
+    void set_callback(std::string_view form_id, F&& f)
+    {
+        auto const it = doc_->id_tag.find(form_id);
+        if (it == doc_->id_tag.end()) {
+            throw std::invalid_argument{"form with specified ID was not found"};
+        }
+        it->second->callback() = std::forward<F>(f);
+    }
+
+    html::Tag* tag_by_id(std::string const& id)
+    {
+        reset_local_doc();
+
+        auto const it = local_doc()->id_tag.find(id);
+        if (it == local_doc()->id_tag.end()) return nullptr;
+        return it->second;
+    }
+
     template <class Body, class Allocator>
-    http::message_generator on_request(http::request<Body, http::basic_fields<Allocator>> const& req, boost::urls::url_view url)
+    http::message_generator on_request(http::request<Body, http::basic_fields<Allocator>> const& req, boost::urls::url_view url) const
     {
         auto status_code = http::status::internal_server_error;
         std::string response_body;
 
         try {
+            reset_local_doc();
+
             for (auto const& param : url.params()) {
                 if (!param.has_value) continue;
-                if (auto it = doc_->name_tag.find(param.key); it != doc_->name_tag.end()) {
+                if (auto it = local_doc()->name_tag.find(param.key); it != local_doc()->name_tag.end()) {
                     it->second->attrs()["value"] = param.value;
                 }
             }
 
             auto const form_action = url.path();
-            auto const form_it = doc_->form_action_tag.find(form_action);
-            if (form_it == doc_->form_action_tag.end()) {
+            auto const form_it = local_doc()->form_action_tag.find(form_action);
+            if (form_it == local_doc()->form_action_tag.end()) {
                 throw std::invalid_argument{"no form found for this action"};
             }
 
@@ -57,7 +87,7 @@ public:
             }
 
             status_code = callback(url.params());
-            response_body = html_->str();
+            response_body = local_html()->str();
 
         } catch (std::exception const& e) {
             std::cerr << "uncaught exception while dispatching controller: " << e.what() << std::endl;
@@ -92,17 +122,46 @@ public:
         return res;
     }
 
-    html::Tag* tag_by_id(std::string const& id)
-    {
-        auto const it = doc_->id_tag.find(id);
-        if (it == doc_->id_tag.end()) return nullptr;
-        return it->second;
-    }
+protected:
+    Controller();
 
 private:
+    static void reset_html(std::unique_ptr<html::Tag>& html_, std::unique_ptr<html::Document>& doc_, std::unique_ptr<html::Tag> html);
+
+    void reset_local_doc() const
+    {
+        if (!local_doc()) {
+            reset_html(local_html(), local_doc(), std::make_unique<html::Tag>(*html_));
+        }
+    }
+
+    virtual std::unique_ptr<html::Tag>& local_html() const = 0;
+    virtual std::unique_ptr<html::Document>& local_doc() const = 0;
+
     std::unique_ptr<html::Tag> html_;
     std::unique_ptr<html::Document> doc_;
 };
+
+
+template<class Derived>
+struct CustomController : Controller
+{
+    friend Controller;
+    using Controller::Controller;
+
+private:
+    std::unique_ptr<html::Tag>& local_html() const override { return local_html_; }
+    std::unique_ptr<html::Document>& local_doc() const override { return local_doc_; }
+
+    static thread_local std::unique_ptr<html::Tag> local_html_;
+    static thread_local std::unique_ptr<html::Document> local_doc_;
+};
+
+template<class Derived>
+thread_local std::unique_ptr<html::Tag> CustomController<Derived>::local_html_;
+
+template<class Derived>
+thread_local std::unique_ptr<html::Document> CustomController<Derived>::local_doc_;
 
 }
 
