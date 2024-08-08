@@ -53,7 +53,7 @@ public:
     template<class F>
     void set_callback(std::string_view form_id, F&& f)
     {
-        static_assert(std::is_invocable_r_v<http::status, F, boost::urls::url_view>);
+        static_assert(std::is_invocable_r_v<http::status, F, boost::urls::url_view const&>);
 
         auto const it = doc_->id_tag.find(form_id);
         if (it == doc_->id_tag.end()) {

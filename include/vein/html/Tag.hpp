@@ -125,7 +125,7 @@ using TagContent = std::variant<TagPtr, std::string>;
 class Tag
 {
 public:
-    using callback_type = std::function<http::status (boost::urls::url_view)>;
+    using callback_type = std::function<http::status (boost::urls::url_view const&)>;
 
     Tag() = default;
     Tag(Tag&&) = default;
