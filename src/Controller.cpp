@@ -18,23 +18,42 @@ void Controller::reset_html(std::unique_ptr<html::Tag>& html_, std::unique_ptr<h
     doc_ = std::make_unique<html::Document>();
 
     yk::overloaded{
-        [&](this auto&& self, html::Tag& tag) -> void {
+        [&](this auto&& self, html::TagPtr& tag) -> void {
             using html::TagType;
 
-            if (tag.type() == TagType::title) {
-                doc_->title_tag = &tag;
+            if (tag->type() == TagType::head) {
+                if (doc_->head_tag) {
+                    throw std::logic_error{"<head>が複数あります"};
+                }
+                doc_->head_tag = tag.get();
+            }
+            if (tag->type() == TagType::link && tag->matches("rel", "canonical")) {
+                if (doc_->link_rel_canonical_tag) {
+                    throw std::logic_error{"<link rel=\"canonical\">が複数あります"};
+                }
+                doc_->link_rel_canonical_tag = tag.get();
+            }
+            if (tag->type() == TagType::meta && tag->matches("name", "description")) {
+                if (doc_->description_tag) {
+                    throw std::logic_error("<meta name=\"description\">が複数あります");
+                }
+                doc_->description_tag = tag.get();
             }
 
-            if (auto const it = tag.attrs().find("name"); it != tag.attrs().end()) {
-                doc_->name_tag.emplace(std::get<std::string>(it->second), &tag);
+            if (tag->type() == TagType::title) {
+                doc_->title_tag = tag.get();
             }
-            if (auto const it = tag.attrs().find("id"); it != tag.attrs().end()) {
-                doc_->id_tag.emplace(std::get<std::string>(it->second), &tag);
+
+            if (auto const it = tag->attrs().find("name"); it != tag->attrs().end()) {
+                doc_->name_tag.emplace(std::get<std::string>(it->second), tag.get());
             }
-            if (tag.type() == TagType::form) {
+            if (auto const it = tag->attrs().find("id"); it != tag->attrs().end()) {
+                doc_->id_tag.emplace(std::get<std::string>(it->second), tag.get());
+            }
+            if (tag->type() == TagType::form) {
                 std::string action;
 
-                if (auto const it = tag.attrs().find("action"); it == tag.attrs().end()) {
+                if (auto const it = tag->attrs().find("action"); it == tag->attrs().end()) {
                     action = "/";
 
                 } else {
@@ -42,9 +61,9 @@ void Controller::reset_html(std::unique_ptr<html::Tag>& html_, std::unique_ptr<h
                     if (action.empty()) action = "/";
                 }
 
-                doc_->form_action_tag.emplace(std::move(action), &tag);
+                doc_->form_action_tag.emplace(std::move(action), tag.get());
             }
-            self(tag.contents());
+            self(tag->contents());
         },
         [](this auto&& self, std::vector<html::TagContent>& contents) -> void {
             for (auto& content : contents) {
@@ -53,9 +72,27 @@ void Controller::reset_html(std::unique_ptr<html::Tag>& html_, std::unique_ptr<h
         },
         [](std::string const&) {},
     }(html_->contents());
+
+    if (!doc_->head_tag) {
+        throw std::invalid_argument{"<head>がありません"};
+    }
+
+    if (!doc_->description_tag) {
+        auto tag = std::make_unique<html::Tag>(html::TagType::meta);
+        tag->attrs().emplace("name", "description");
+        tag->attrs().emplace("content", "");
+        doc_->head_tag->contents().emplace_back(std::move(tag));
+    }
+
+    if (!doc_->link_rel_canonical_tag) {
+        auto tag = std::make_unique<html::Tag>(html::TagType::link);
+        tag->attrs().emplace("rel", "canonical");
+        tag->attrs().emplace("href", "");
+        doc_->head_tag->contents().emplace_back(std::move(tag));
+    }
 }
 
-void Controller::set_title(std::string title)
+void Controller::set_title(std::string const& title)
 {
     reset_local_doc();
 
@@ -64,7 +101,29 @@ void Controller::set_title(std::string title)
     }
 
     local_doc()->title_tag->contents().clear();
-    local_doc()->title_tag->append_string_content(std::move(title));
+    local_doc()->title_tag->append_string_content(title);
+}
+
+void Controller::set_description(std::string const& description)
+{
+    reset_local_doc();
+    local_doc()->description_tag->attrs()["content"] = description;
+}
+
+void Controller::set_link_rel_canonical(std::optional<boost::urls::url> const& link_rel_canonical)
+{
+    reset_local_doc();
+
+    if (!link_rel_canonical) {
+        local_doc()->link_rel_canonical_tag->attrs()["href"] = std::string{};
+        return;
+    }
+
+    auto full_url = canonical_url_origin_;
+    full_url.set_encoded_path(link_rel_canonical->encoded_path());
+    full_url.set_encoded_query(link_rel_canonical->encoded_query());
+    //full_url.set_encoded_fragment(link_rel_canonical->encoded_fragment());
+    local_doc()->link_rel_canonical_tag->attrs()["href"] = std::string{full_url.c_str()};
 }
 
 }

@@ -15,6 +15,17 @@ namespace vein::html {
 
 std::string Tag::str() const
 {
+    if (type_ == TagType::link && matches("rel", "canonical")) {
+        auto const it = attrs_.find("href");
+        if (it == attrs_.end()) return {};
+        if (std::get<std::string>(it->second).empty()) return {};
+
+    } else if (type_ == TagType::meta && matches("name", "description")) {
+        auto const it = attrs_.find("content");
+        if (it == attrs_.end()) return {};
+        if (std::get<std::string>(it->second).empty()) return {};
+    }
+
     auto const type_str = to_string(type_);
 
     std::string res;
@@ -63,8 +74,8 @@ std::string Tag::str() const
                 [&](std::string const& str) {
                     res += str;
                 },
-                [&](Tag const& tag) {
-                    res += tag.str();
+                [&](TagPtr const& tag) {
+                    res += tag->str();
                 },
             }, content);
         }

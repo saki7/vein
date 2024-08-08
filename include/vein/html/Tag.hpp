@@ -5,6 +5,7 @@
 
 #include <yk/util/overloaded.hpp>
 #include <yk/variant/boost.hpp>
+#include <yk/variant/std.hpp>
 
 #include <boost/variant/variant.hpp>
 #include <boost/beast/http/status.hpp>
@@ -19,6 +20,8 @@
 #include <string>
 #include <array>
 #include <type_traits>
+
+#include "Tag.hpp"
 
 
 namespace vein {
@@ -71,15 +74,25 @@ inline constexpr auto tag_type_names_v = std::array{
     "html",
 };
 
+// https://html.spec.whatwg.org/multipage/syntax.html#void-elements
 constexpr bool is_void_element(TagType type) noexcept
 {
     using enum TagType;
 
     switch (type) {
+    //case area:
+    //case base:
+    //case br:
+    //case col:
+    //case embed:
+    //case hr:
+    //case img:
     case input:
-    case button:
-    case style:
+    case link:
     case meta:
+    //case source:
+    //case track:
+    //case wbr:
         return true;
 
     default:
@@ -104,17 +117,17 @@ using AttrValue = std::variant<
 >;
 
 class Tag;
+using TagPtr = std::unique_ptr<Tag>;
 
-using TagContent = boost::variant<Tag, std::string>;
+using TagContent = std::variant<TagPtr, std::string>;
 
 
 class Tag
 {
 public:
-    using callback_type = std::function<http::status (boost::urls::params_view const&)>;
+    using callback_type = std::function<http::status (boost::urls::url_view)>;
 
     Tag() = default;
-    Tag(Tag const&) = default;
     Tag(Tag&&) = default;
     Tag& operator=(Tag const&) = default;
     Tag& operator=(Tag&&) = default;
@@ -123,11 +136,39 @@ public:
         : type_(type)
     {}
 
+    Tag(Tag const& other)
+        : type_(other.type_)
+        , attrs_(other.attrs_)
+        , callback_(other.callback_)
+    {
+        contents_.reserve(other.contents_.size());
+
+        for (auto const& content : other.contents_) {
+            contents_.emplace_back(std::visit<TagContent>(yk::overloaded{
+                [](TagPtr const& tag_ptr) {
+                    return std::make_unique<Tag>(*tag_ptr);
+                },
+                [](auto const& value) {
+                    return value;
+                },
+            }, content));
+        }
+    }
+
     TagType type() const noexcept { return type_; }
     bool is_void_element() const noexcept { return html::is_void_element(type_); }
 
     auto const& attrs() const noexcept { return attrs_; }
     auto& attrs() noexcept { return attrs_; }
+
+    [[nodiscard]] bool matches(std::string_view attr, std::string_view value) const noexcept
+    {
+        auto const it = attrs_.find(attr);
+        if (it == attrs_.end()) return false;
+        auto* val = std::get_if<std::string>(&it->second);
+        if (!val) return false;
+        return *val == value;
+    }
 
     callback_type& callback() noexcept { return callback_; }
 
@@ -153,9 +194,9 @@ public:
                         [](std::string const&) {
                             return false;
                         },
-                        [&](Tag const& tag) {
-                            auto it = tag.attrs().find(attr_key);
-                            if (it == tag.attrs().end()) return false;
+                        [&](TagPtr const& tag) {
+                            auto it = tag->attrs().find(attr_key);
+                            if (it == tag->attrs().end()) return false;
 
                             if (auto* v = std::get_if<std::string>(&it->second)) {
                                 return *v == attr_value;
@@ -174,7 +215,9 @@ public:
         auto childs = self.children(attr_key, attr_value);
         auto it = childs.begin();
         if (it != childs.end()) {
-            return yk::get<Tag>(&*it);
+            auto tag_ptr = yk::get<TagPtr>(&*it);
+            if (!tag_ptr) return static_cast<Tag*>(nullptr);
+            return tag_ptr->get();
         }
         return static_cast<Tag*>(nullptr);
     }

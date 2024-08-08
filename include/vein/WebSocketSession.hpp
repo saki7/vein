@@ -44,9 +44,7 @@ public:
         // Set a decorator to change the Server of the handshake
         ws_.set_option(websocket::stream_base::decorator(
             [](websocket::response_type& res) {
-                res.set(http::field::server,
-                    std::string(BOOST_BEAST_VERSION_STRING) +
-                    " advanced-server");
+                //res.set(http::field::server, "vein/ws");
             }));
 
         // Accept the websocket handshake

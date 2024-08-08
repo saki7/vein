@@ -5,6 +5,7 @@
 #include "vein/Allocator.hpp"
 
 #include <boost/url/url_view.hpp>
+#include <boost/url/url.hpp>
 
 #include <boost/beast/http.hpp>
 #include <boost/beast/http/vector_body.hpp>
@@ -38,11 +39,22 @@ public:
         local_doc().reset();
     }
 
-    void set_title(std::string title);
+    void set_title(std::string const& title);
+
+    void set_description(std::string const& description);
+
+    void set_canonical_url_origin(boost::urls::url const& canonical_url_origin)
+    {
+        canonical_url_origin_ = canonical_url_origin;
+    }
+
+    void set_link_rel_canonical(std::optional<boost::urls::url> const& link_rel_canonical);
 
     template<class F>
     void set_callback(std::string_view form_id, F&& f)
     {
+        static_assert(std::is_invocable_r_v<http::status, F, boost::urls::url_view>);
+
         auto const it = doc_->id_tag.find(form_id);
         if (it == doc_->id_tag.end()) {
             throw std::invalid_argument{"form with specified ID was not found"};
@@ -50,7 +62,7 @@ public:
         it->second->callback() = std::forward<F>(f);
     }
 
-    html::Tag* tag_by_id(std::string const& id)
+    html::Tag* tag_by_id(std::string_view id)
     {
         reset_local_doc();
 
@@ -86,8 +98,8 @@ public:
                 throw std::invalid_argument("callback was not set for this form");
             }
 
-            status_code = callback(url.params());
-            response_body = local_html()->str();
+            status_code = callback(url);
+            response_body = "<!DOCTYPE html>\n" + local_html()->str();
 
         } catch (std::exception const& e) {
             std::cerr << "uncaught exception while dispatching controller: " << e.what() << std::endl;
@@ -99,7 +111,7 @@ public:
         }
 
         http::response<http::vector_body<char, default_init_allocator<char>>> res{status_code, req.version()};
-        res.set(http::field::server, "vein");
+        //res.set(http::field::server, "vein");
         res.set(http::field::content_type, "text/html; charset=utf-8");
         res.keep_alive(req.keep_alive());
 
@@ -137,6 +149,8 @@ private:
 
     virtual std::unique_ptr<html::Tag>& local_html() const = 0;
     virtual std::unique_ptr<html::Document>& local_doc() const = 0;
+
+    boost::urls::url canonical_url_origin_;
 
     std::unique_ptr<html::Tag> html_;
     std::unique_ptr<html::Document> doc_;

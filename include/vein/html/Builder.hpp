@@ -30,7 +30,7 @@ struct make_tag_content<PredefBuilder<type>>
     template<class T>
     static void apply(Tag& tag, T&& predef_builder)
     {
-        tag.contents().emplace_back(Tag{std::forward_like<T>(predef_builder.tag_)});
+        tag.contents().emplace_back(std::make_unique<Tag>(std::forward_like<T>(predef_builder.tag_)));
     }
 };
 

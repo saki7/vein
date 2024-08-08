@@ -81,7 +81,7 @@ public:
         // Returns a bad request response
         auto const bad_request = [&req](beast::string_view why) {
             http::response<http::string_body> res{http::status::bad_request, req.version()};
-            res.set(http::field::server, "vein");
+            //res.set(http::field::server, "vein");
             res.set(http::field::content_type, "text/html");
             res.keep_alive(req.keep_alive());
             res.body() = std::string(why);
@@ -92,7 +92,7 @@ public:
         // Returns a not found response
         auto const not_found = [&req](beast::string_view target) {
             http::response<http::string_body> res{http::status::not_found, req.version()};
-            res.set(http::field::server, "vein");
+            //res.set(http::field::server, "vein");
             res.set(http::field::content_type, "text/html");
             res.keep_alive(req.keep_alive());
             res.body() = "The resource '" + std::string(target) + "' was not found.";
@@ -103,7 +103,7 @@ public:
         // Returns a server error response
         auto const server_error = [&req](beast::string_view what) {
             http::response<http::string_body> res{http::status::internal_server_error, req.version()};
-            res.set(http::field::server, "vein");
+            //res.set(http::field::server, "vein");
             res.set(http::field::content_type, "text/html");
             res.keep_alive(req.keep_alive());
             res.body() = "An error occurred: '" + std::string(what) + "'";
@@ -190,7 +190,7 @@ public:
 
             if (req.method() == http::verb::head) {
                 http::response<http::empty_body> res{http::status::ok, req.version()};
-                res.set(http::field::server, "vein");
+                //res.set(http::field::server, "vein");
                 res.set(http::field::content_type, mime.type);
                 res.content_length(size);
                 res.keep_alive(req.keep_alive());
@@ -202,7 +202,7 @@ public:
                 std::make_tuple(std::move(body)),
                 std::make_tuple(http::status::ok, req.version())
             };
-            res.set(http::field::server, "vein");
+            //res.set(http::field::server, "vein");
             res.set(http::field::content_type, mime.type);
             res.content_length(size);
             res.keep_alive(req.keep_alive());
@@ -210,10 +210,10 @@ public:
 
         } else {
             http::response<http::vector_body<char, default_init_allocator<char>>> res{http::status::ok, req.version()};
-            res.set(http::field::server, "vein");
+            //res.set(http::field::server, "vein");
             res.set(http::field::content_type, mime.type);
             res.keep_alive(req.keep_alive());
-            
+
             try {
                 std::ifstream file{path.string(), std::ios::in | std::ios::binary};
                 file.exceptions(std::ios::failbit | std::ios::badbit);
@@ -224,7 +224,7 @@ public:
                 is.push(file);
                 // TODO: reserve?
                 boost::iostreams::copy(is, std::back_inserter(res.body()));
-                
+
                 res.set(http::field::content_encoding, "deflate");
 
             } catch (std::ios::failure const& /*e*/) {
