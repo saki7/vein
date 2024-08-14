@@ -70,6 +70,17 @@ public:
 
     void route(PathMatcher matcher, std::unique_ptr<Controller> controller);
 
+    [[nodiscard]] static bool is_safe_path(std::filesystem::path root, std::filesystem::path child)
+    {
+        if (!exists(root)) return false;
+        if (!exists(child)) return false;
+
+        root = canonical(root);
+        child = canonical(child);
+
+        auto const it = std::search(child.begin(), child.end(), root.begin(), root.end());
+        return it == child.begin();
+    }
 
     // Return a response for the given request.
     //
@@ -119,54 +130,63 @@ public:
         }
 
         // Request path must be absolute and not contain "..".
-        if (req.target().empty() ||
-            req.target()[0] != '/' ||
-            req.target().find("..") != beast::string_view::npos
-        ) {
+        if (req.target().empty() || req.target()[0] != '/') {
             return bad_request("Illegal request-target");
         }
 
 
         // TODO: handle POST/HEAD request for controllers
 
+        auto const url = boost::urls::parse_origin_form(req.target());
+        auto const url_path = url->path();
+        if (url_path.contains("..")) {
+            return not_found(req.target());
+        }
+
         if (req.method() == http::verb::get) {
-            auto const url = boost::urls::parse_origin_form(req.target());
+            // TODO: transparent hash
 
-            std::string const path = url->path();
-
-            if (auto it = controllers_.find(path); it != controllers_.end()) {
+            if (auto it = controllers_.find(url_path.c_str()); it != controllers_.end()) {
                 // app response
                 auto const& controller = it->second;
                 return controller->on_request(req, *url);
             }
         }
 
+        // --------------------------------------------------
+        // --------------------------------------------------
+        // --------------------------------------------------
         // file response
 
-        // Build the path to the requested file
-
-
         do {
-            auto const slash_pos = req.target().find_last_of('/');
+            auto const slash_pos = url_path.find_last_of('/');
             if (slash_pos == boost::core::string_view::npos) break;
-            if (slash_pos == req.target().size() - 1) break;
+            if (slash_pos == url_path.size() - 1) break;
 
-            if (req.target()[slash_pos + 1] == '_') {
+            if (url_path[slash_pos + 1] == '_') {
                 // partial template
                 return not_found(req.target());
             }
         } while (false);
 
 
-        auto rel_path = req.target();
+        std::string_view rel_path = url_path;
         if (!rel_path.empty() && rel_path[0] == '/') {
             rel_path.remove_prefix(1);
         }
 
-        std::filesystem::path path = public_root_ / std::string{rel_path};
-        if (req.target().back() == '/') {
-            path /= "index.html";
+        std::filesystem::path const path = [this, &rel_path, &url_path] {
+            auto path = public_root_ / std::string{rel_path};
+            if (url_path.back() == '/') {
+                path /= "index.html";
+            }
+            return path;
+        }();
+
+        if (!is_safe_path(public_root_, path)) {
+            return not_found(req.target());
         }
+
         auto const mime = mime_type(path);
 
         if (mime.is_already_compressed) {
