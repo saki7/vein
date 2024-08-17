@@ -62,13 +62,10 @@ public:
         it->second->callback() = std::forward<F>(f);
     }
 
-    html::Tag* tag_by_id(std::string_view id)
+    auto* tag_by_id(this auto&& self, std::string_view id)
     {
-        reset_local_doc();
-
-        auto const it = local_doc()->id_tag.find(id);
-        if (it == local_doc()->id_tag.end()) return nullptr;
-        return it->second;
+        self.reset_local_doc();
+        return self.local_doc()->tag_by_id(id);
     }
 
     template <class Body, class Allocator>
@@ -136,6 +133,9 @@ public:
 
 protected:
     Controller();
+
+    [[nodiscard]] html::Document const* doc() const noexcept { return doc_.get(); }
+    [[nodiscard]] html::Document* doc() noexcept { return doc_.get(); }
 
 private:
     static void reset_html(std::unique_ptr<html::Tag>& html_, std::unique_ptr<html::Document>& doc_, std::unique_ptr<html::Tag> html);
