@@ -3,6 +3,9 @@
 
 #include "vein/html/Tag.hpp"
 
+#include <charconv>
+#include <array>
+
 
 namespace vein::html {
 
@@ -17,6 +20,15 @@ struct make_tag_content
     {
         if constexpr (std::is_convertible_v<T, std::string>) {
             tag.contents().emplace_back(TagContent{std::string{std::forward<T>(value)}});
+
+        } else if constexpr (std::integral<T>) {
+            std::array<char, 16> buf;
+            auto const [ptr, ec] = std::to_chars(buf.data(), buf.data() + buf.size(), value);
+            if (ec != std::errc{}) {
+                tag.contents().emplace_back("(不正な値)");
+                return;
+            }
+            tag.contents().emplace_back(std::string{buf.data(), ptr});
 
         } else {
             tag.contents().emplace_back(TagContent{std::remove_cvref_t<T>{std::forward<T>(value)}});
@@ -111,11 +123,26 @@ private:
 
 namespace builders {
 
+using html::TagPtr;
+using html::TagType;
+
+using table   = PredefBuilder<TagType::table>;
+using thead   = PredefBuilder<TagType::thead>;
+using tbody   = PredefBuilder<TagType::tbody>;
+using tr      = PredefBuilder<TagType::tr>;
+using th      = PredefBuilder<TagType::th>;
+using td      = PredefBuilder<TagType::td>;
+using caption = PredefBuilder<TagType::caption>;
+
 using div    = PredefBuilder<TagType::div>;
 using p      = PredefBuilder<TagType::p>;
+using span   = PredefBuilder<TagType::span>;
+using a      = PredefBuilder<TagType::a>;
+
 using ul     = PredefBuilder<TagType::ul>;
 using ol     = PredefBuilder<TagType::ol>;
 using li     = PredefBuilder<TagType::li>;
+
 using form   = PredefBuilder<TagType::form>;
 using input  = PredefBuilder<TagType::input>;
 using button = PredefBuilder<TagType::button>;

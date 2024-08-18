@@ -51,7 +51,14 @@ public:
     void set_link_rel_canonical(std::optional<boost::urls::url> const& link_rel_canonical);
 
     template<class F>
-    void set_callback(std::string_view form_id, F&& f)
+    void set_default_callback(F&& f)
+    {
+        static_assert(std::is_invocable_r_v<http::status, F, boost::urls::url_view const&>);
+        doc_->default_callback_ = std::forward<F>(f);
+    }
+
+    template<class F>
+    void set_form_callback(std::string_view form_id, F&& f)
     {
         static_assert(std::is_invocable_r_v<http::status, F, boost::urls::url_view const&>);
 
@@ -71,7 +78,7 @@ public:
     template <class Body, class Allocator>
     http::message_generator on_request(http::request<Body, http::basic_fields<Allocator>> const& req, boost::urls::url_view url) const
     {
-        auto status_code = http::status::internal_server_error;
+        auto status_code = http::status::ok;
         std::string response_body;
 
         try {
@@ -85,25 +92,37 @@ public:
             }
 
             auto const form_action = url.path();
-            auto const form_it = local_doc()->form_action_tag.find(form_action);
-            if (form_it == local_doc()->form_action_tag.end()) {
-                throw std::invalid_argument{"no form found for this action"};
-            }
 
-            auto& callback = form_it->second->callback();
-            if (!callback) {
-                throw std::invalid_argument("callback was not set for this form");
-            }
+            do {
+                if (auto const form_it = local_doc()->form_action_tag.find(form_action);
+                    form_it == local_doc()->form_action_tag.end()
+                ) {
+                    if (!doc_->default_callback_) {
+                        std::cerr << "warning: the url does not match any form actions, and the default callback on the controller was unset" << std::endl;
+                        break;
+                    }
+                    status_code = doc_->default_callback_(url);
 
-            status_code = callback(url);
+                } else {
+                    auto& callback = form_it->second->callback();
+                    if (!callback) {
+                        throw std::invalid_argument("callback was not set for this form");
+                    }
+
+                    status_code = callback(url);
+                }
+            } while (false);
+
             response_body = "<!DOCTYPE html>\n" + local_html()->str();
 
         } catch (std::exception const& e) {
             std::cerr << "uncaught exception while dispatching controller: " << e.what() << std::endl;
+            status_code = http::status::internal_server_error;
             response_body = "Internal server error";
 
         } catch (...) {
             std::cerr << "uncaught and uncatchable exception while dispatching controller" << std::endl;
+            status_code = http::status::internal_server_error;
             response_body = "Internal server error";
         }
 
@@ -144,6 +163,7 @@ private:
     {
         if (!local_doc()) {
             reset_html(local_html(), local_doc(), std::make_unique<html::Tag>(*html_));
+            local_doc()->default_callback_ = doc_->default_callback_;
         }
     }
 

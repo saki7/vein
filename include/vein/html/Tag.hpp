@@ -34,11 +34,23 @@ namespace vein::html {
 
 enum class TagType : int
 {
+    table,
+    thead,
+    tbody,
+    tr,
+    th,
+    td,
+    caption,
+
     div,
     p,
+    span,
+    a,
+
     ul,
     ol,
     li,
+
     form,
     input,
     button,
@@ -55,11 +67,23 @@ enum class TagType : int
 };
 
 inline constexpr auto tag_type_names_v = std::array{
+    "table",
+    "thead",
+    "tbody",
+    "tr",
+    "th",
+    "td",
+    "caption",
+
     "div",
     "p",
+    "span",
+    "a",
+
     "ul",
     "ol",
     "li",
+
     "form",
     "input",
     "button",
@@ -155,11 +179,11 @@ public:
         }
     }
 
-    TagType type() const noexcept { return type_; }
-    bool is_void_element() const noexcept { return html::is_void_element(type_); }
+    [[nodiscard]] TagType type() const noexcept { return type_; }
+    [[nodiscard]] bool is_void_element() const noexcept { return html::is_void_element(type_); }
 
-    auto const& attrs() const noexcept { return attrs_; }
-    auto& attrs() noexcept { return attrs_; }
+    [[nodiscard]] auto const& attrs() const noexcept { return attrs_; }
+    [[nodiscard]] auto& attrs() noexcept { return attrs_; }
 
     [[nodiscard]] bool matches(std::string_view attr, std::string_view value) const noexcept
     {
@@ -170,14 +194,14 @@ public:
         return *val == value;
     }
 
-    callback_type& callback() noexcept { return callback_; }
+    [[nodiscard]] callback_type& callback() noexcept { return callback_; }
 
-    std::string str() const;
+    [[nodiscard]] std::string str() const;
 
     // ---------------------------------------
 
-    std::vector<TagContent> const& contents() const noexcept { return contents_; }
-    std::vector<TagContent>& contents() noexcept { return contents_; }
+    [[nodiscard]] std::vector<TagContent> const& contents() const noexcept { return contents_; }
+    [[nodiscard]] std::vector<TagContent>& contents() noexcept { return contents_; }
 
     template<class... Args>
     void append_string_content(Args&&... args)
@@ -185,7 +209,7 @@ public:
         contents_.emplace_back(std::string{std::forward<Args>(args)...});
     }
 
-    auto children(this auto&& self, std::string_view attr_key, std::string_view attr_value)
+    [[nodiscard]] auto children(this auto&& self, std::string_view attr_key, std::string_view attr_value) noexcept
     {
         return self.contents_
             | std::views::filter([&](auto const& tag_content) {
@@ -210,7 +234,19 @@ public:
         );
     }
 
-    auto first_child(this auto&& self, std::string_view attr_key, std::string_view attr_value)
+    [[nodiscard]] auto first_child(this auto&& self, TagType type) noexcept
+    {
+        for (auto const& child : self.contents_) {
+            auto* tag_ptr = std::get_if<TagPtr>(&child);
+            if (!tag_ptr) continue;
+            if ((*tag_ptr)->type() == type) {
+                return tag_ptr->get();
+            }
+        }
+        return static_cast<Tag*>(nullptr);
+    }
+
+    [[nodiscard]] auto first_child(this auto&& self, std::string_view attr_key, std::string_view attr_value) noexcept
     {
         auto childs = self.children(attr_key, attr_value);
         auto it = childs.begin();
