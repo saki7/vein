@@ -13,6 +13,7 @@
 #include <boost/beast/core/tcp_stream.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
 
+#include <boost/asio/dispatch.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
 #include <queue>
