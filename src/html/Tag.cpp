@@ -34,6 +34,8 @@ std::string Tag::str() const
         res = std::format("<{}>", type_str);
 
     } else {
+        static std::regex const quotes_rgx{R"(")"};
+
         auto const attrs_str = attrs_ |
             std::views::transform([](auto const& kv) {
                 auto const& [k, v] = kv;
@@ -49,12 +51,19 @@ std::string Tag::str() const
                     },
                     [&](std::string const& v) {
                         res += "=\"";
-
-                        static std::regex const quotes_rgx{R"(")"};
                         res += std::regex_replace(v, quotes_rgx, "&quot;");
-
                         res += '"';
-                    }
+                    },
+                    [&](ClassList const& classes) {
+                        res += "=\"";
+                        res += classes
+                            | std::views::transform([&](auto const& str) {
+                                return std::regex_replace(str, quotes_rgx, "&quot;");
+                            })
+                            | std::views::join_with(std::string_view{" "})
+                            | std::ranges::to<std::string>();
+                        res += '"';
+                    },
                 }, v);
                 return res;
             })

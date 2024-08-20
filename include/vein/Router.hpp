@@ -4,7 +4,8 @@
 #include "vein/LibraryConfig.hpp"
 #include "vein/Controller.hpp"
 #include "vein/File.hpp"
-#include "vein/Allocator.hpp"
+
+#include "yk/allocator/default_init_allocator.hpp"
 
 #include <boost/url.hpp>
 #include <boost/url/parse.hpp>
@@ -229,7 +230,7 @@ public:
             return res;
 
         } else {
-            http::response<http::vector_body<char, default_init_allocator<char>>> res{http::status::ok, req.version()};
+            http::response<http::vector_body<char, yk::default_init_allocator<char>>> res{http::status::ok, req.version()};
             //res.set(http::field::server, "vein");
             res.set(http::field::content_type, mime.type);
             res.keep_alive(req.keep_alive());

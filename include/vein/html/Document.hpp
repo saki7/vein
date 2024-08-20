@@ -18,6 +18,8 @@ struct Document
     Tag* description_tag = nullptr;
     Tag* link_rel_canonical_tag = nullptr;
 
+    Tag* body_tag = nullptr;
+
     std::unordered_map<std::string, Tag*, string_hash, std::equal_to<>>
     name_tag, id_tag, form_action_tag;
 

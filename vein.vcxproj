@@ -24,7 +24,6 @@
     <ClCompile Include="src\Server.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\vein\Allocator.hpp" />
     <ClInclude Include="include\vein\Controller.hpp" />
     <ClInclude Include="include\vein\Error.hpp" />
     <ClInclude Include="include\vein\File.hpp" />

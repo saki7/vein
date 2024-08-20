@@ -1,3 +1,6 @@
 [submodule "modules/variant_view"]
 	path = modules/variant_view
 	url = https://github.com/yaito3014/variant_view.git
+[submodule "modules/yk_util"]
+	path = modules/yk_util
+	url = https://github.com/yaito3014/yk_util.git

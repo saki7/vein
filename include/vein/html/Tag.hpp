@@ -4,7 +4,6 @@
 #include "vein/Hash.hpp"
 
 #include <yk/util/overloaded.hpp>
-#include <yk/variant/boost.hpp>
 #include <yk/variant/std.hpp>
 
 #include <boost/variant/variant.hpp>
@@ -12,6 +11,7 @@
 #include <boost/url/params_view.hpp>
 
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include <memory>
 #include <ranges>
@@ -20,8 +20,6 @@
 #include <string>
 #include <array>
 #include <type_traits>
-
-#include "Tag.hpp"
 
 
 namespace vein {
@@ -133,11 +131,13 @@ inline std::string to_string(TagType type)
     return tag_type_names_v[index];
 }
 
+using ClassList = std::unordered_set<std::string, string_hash, std::equal_to<>>;
 
 using AttrValue = std::variant<
     std::monostate,
     int,
-    std::string
+    std::string,
+    ClassList
 >;
 
 class Tag;
@@ -184,6 +184,9 @@ public:
 
     [[nodiscard]] auto const& attrs() const noexcept { return attrs_; }
     [[nodiscard]] auto& attrs() noexcept { return attrs_; }
+
+    [[nodiscard]] decltype(auto) classes() const noexcept { return std::get<ClassList>(attrs_.at("class")); }
+    [[nodiscard]] decltype(auto) classes() noexcept { return std::get<ClassList>(attrs_.at("class")); }
 
     [[nodiscard]] bool matches(std::string_view attr, std::string_view value) const noexcept
     {

@@ -44,6 +44,10 @@ void Controller::reset_html(std::unique_ptr<html::Tag>& html_, std::unique_ptr<h
                 doc_->title_tag = tag.get();
             }
 
+            if (tag->type() == TagType::body) {
+                doc_->body_tag = tag.get();
+            }
+
             if (auto const it = tag->attrs().find("name"); it != tag->attrs().end()) {
                 doc_->name_tag.emplace(std::get<std::string>(it->second), tag.get());
             }

@@ -18,20 +18,20 @@ struct make_tag_content
     template<class U>
     static void apply(Tag& tag, U&& value)
     {
-        if constexpr (std::is_convertible_v<U, std::string>) {
-            tag.contents().emplace_back(TagContent{std::string{std::forward<U>(value)}});
+        if constexpr (std::is_convertible_v<T, std::string>) {
+            tag.contents().emplace_back(std::in_place_type<std::string>, std::forward<U>(value));
 
         } else if constexpr (std::integral<T>) {
             std::array<char, 16> buf;
             auto const [ptr, ec] = std::to_chars(buf.data(), buf.data() + buf.size(), value);
             if (ec != std::errc{}) {
-                tag.contents().emplace_back("(不正な値)");
+                tag.contents().emplace_back(std::in_place_type<std::string>, "(不正な値)");
                 return;
             }
-            tag.contents().emplace_back(std::string{buf.data(), ptr});
+            tag.contents().emplace_back(std::in_place_type<std::string>, buf.data(), ptr);
 
         } else {
-            tag.contents().emplace_back(TagContent{std::remove_cvref_t<T>{std::forward<U>(value)}});
+            tag.contents().emplace_back(std::in_place_type<T>, std::forward<U>(value));
         }
     }
 };
@@ -123,8 +123,10 @@ private:
 
 namespace builders {
 
+using html::Tag;
 using html::TagPtr;
 using html::TagType;
+using html::ClassList;
 
 using table   = PredefBuilder<TagType::table>;
 using thead   = PredefBuilder<TagType::thead>;

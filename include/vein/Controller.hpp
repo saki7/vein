@@ -2,7 +2,8 @@
 #define VEIN_CONTROLLER_HPP
 
 #include "vein/html/Document.hpp"
-#include "vein/Allocator.hpp"
+
+#include "yk/allocator/default_init_allocator.hpp"
 
 #include <boost/url/url_view.hpp>
 #include <boost/url/url.hpp>
@@ -75,6 +76,12 @@ public:
         return self.local_doc()->tag_by_id(id);
     }
 
+    auto* body_tag(this auto&& self)
+    {
+        self.reset_local_doc();
+        return self.local_doc()->body_tag;
+    }
+
     template <class Body, class Allocator>
     http::message_generator on_request(http::request<Body, http::basic_fields<Allocator>> const& req, boost::urls::url_view url) const
     {
@@ -126,7 +133,7 @@ public:
             response_body = "Internal server error";
         }
 
-        http::response<http::vector_body<char, default_init_allocator<char>>> res{status_code, req.version()};
+        http::response<http::vector_body<char, yk::default_init_allocator<char>>> res{status_code, req.version()};
         //res.set(http::field::server, "vein");
         res.set(http::field::content_type, "text/html; charset=utf-8");
         res.keep_alive(req.keep_alive());

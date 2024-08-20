@@ -95,8 +95,5 @@
     <ClInclude Include="include\vein\html\Document.hpp">
       <Filter>Header Files\vein\html</Filter>
     </ClInclude>
-    <ClInclude Include="include\vein\Allocator.hpp">
-      <Filter>Header Files\vein</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
