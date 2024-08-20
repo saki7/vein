@@ -3,6 +3,7 @@
 
 #include "vein/Error.hpp"
 #include "vein/HTTPSession.hpp"
+#include "vein/Router.hpp"
 
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/bind_handler.hpp>

@@ -9,6 +9,7 @@
 
 #include <cstdlib>
 #include <csignal>
+#include <thread>
 
 
 namespace vein {

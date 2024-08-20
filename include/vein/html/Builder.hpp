@@ -15,11 +15,11 @@ class PredefBuilder;
 template<class T>
 struct make_tag_content
 {
-    template<class T>
-    static void apply(Tag& tag, T&& value)
+    template<class U>
+    static void apply(Tag& tag, U&& value)
     {
-        if constexpr (std::is_convertible_v<T, std::string>) {
-            tag.contents().emplace_back(TagContent{std::string{std::forward<T>(value)}});
+        if constexpr (std::is_convertible_v<U, std::string>) {
+            tag.contents().emplace_back(TagContent{std::string{std::forward<U>(value)}});
 
         } else if constexpr (std::integral<T>) {
             std::array<char, 16> buf;
@@ -31,7 +31,7 @@ struct make_tag_content
             tag.contents().emplace_back(std::string{buf.data(), ptr});
 
         } else {
-            tag.contents().emplace_back(TagContent{std::remove_cvref_t<T>{std::forward<T>(value)}});
+            tag.contents().emplace_back(TagContent{std::remove_cvref_t<T>{std::forward<U>(value)}});
         }
     }
 };
