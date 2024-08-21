@@ -18,7 +18,7 @@ struct make_tag_content
     template<class U>
     static void apply(Tag& tag, U&& value)
     {
-        if constexpr (std::is_convertible_v<T, std::string>) {
+        if constexpr (std::is_constructible_v<std::string, T>) {
             tag.contents().emplace_back(std::in_place_type<std::string>, std::forward<U>(value));
 
         } else if constexpr (std::integral<T>) {
