@@ -215,7 +215,7 @@ public:
     [[nodiscard]] auto children(this auto&& self, std::string_view attr_key, std::string_view attr_value) noexcept
     {
         return self.contents_
-            | std::views::filter([&](auto const& tag_content) {
+            | std::views::filter([attr_key = std::string{attr_key}, attr_value = std::string{attr_value}](auto const& tag_content) {
                 return yk::visit(
                     yk::overloaded{
                         [](std::string const&) {
