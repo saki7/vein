@@ -4,3 +4,6 @@
 [submodule "modules/yk_util"]
 	path = modules/yk_util
 	url = https://github.com/yaito3014/yk_util.git
+[submodule "modules/SG14"]
+	path = modules/SG14
+	url = https://github.com/saki7/SG14.git

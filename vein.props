@@ -8,7 +8,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)modules\SG14\include;$(SolutionDir)modules\vein\include;$(SolutionDir)modules\vein\modules\yk_util\include;$(SolutionDir)modules\vein\modules\variant_view\include;$(SolutionDir)pch;$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)include;$(ProjectDir)modules\SG14\include;$(ProjectDir)modules\yk_util\include;$(ProjectDir)modules\variant_view\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup>
