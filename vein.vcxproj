@@ -27,7 +27,6 @@
     <ClInclude Include="include\vein\Controller.hpp" />
     <ClInclude Include="include\vein\Error.hpp" />
     <ClInclude Include="include\vein\File.hpp" />
-    <ClInclude Include="include\vein\Hash.hpp" />
     <ClInclude Include="include\vein\html\Builder.hpp" />
     <ClInclude Include="include\vein\html\Document.hpp" />
     <ClInclude Include="include\vein\html\Tag.hpp" />

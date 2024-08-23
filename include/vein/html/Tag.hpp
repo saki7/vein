@@ -1,8 +1,9 @@
 ﻿#ifndef VEIN_HTML_TAG_HPP
 #define VEIN_HTML_TAG_HPP
 
-#include "vein/Hash.hpp"
+#include "vein/LibraryConfig.hpp"
 
+#include <yk/string_hash.hpp>
 #include <yk/util/overloaded.hpp>
 #include <yk/variant/std.hpp>
 
@@ -131,7 +132,7 @@ inline std::string to_string(TagType type)
     return tag_type_names_v[index];
 }
 
-using ClassList = std::unordered_set<std::string, string_hash, std::equal_to<>>;
+using ClassList = std::unordered_set<std::string, yk::string_hash, std::equal_to<>>;
 
 using AttrValue = std::variant<
     std::monostate,
@@ -263,7 +264,7 @@ public:
 
 private:
     TagType type_ = TagType::div;
-    std::unordered_map<std::string, AttrValue, string_hash, std::equal_to<>> attrs_;
+    std::unordered_map<std::string, AttrValue, yk::string_hash, std::equal_to<>> attrs_;
     std::vector<TagContent> contents_;
 
     callback_type callback_;

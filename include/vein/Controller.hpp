@@ -1,6 +1,7 @@
 ﻿#ifndef VEIN_CONTROLLER_HPP
 #define VEIN_CONTROLLER_HPP
 
+#include "vein/LibraryConfig.hpp"
 #include "vein/html/Document.hpp"
 
 #include "yk/allocator/default_init_allocator.hpp"

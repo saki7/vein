@@ -1,9 +1,10 @@
 ﻿#ifndef VEIN_HTML_DOCUMENT_HPP
 #define VEIN_HTML_DOCUMENT_HPP
 
+#include "vein/LibraryConfig.hpp"
 #include "vein/html/Tag.hpp"
 
-#include "vein/Hash.hpp"
+#include <yk/string_hash.hpp>
 
 #include <unordered_map>
 #include <string>
@@ -20,7 +21,7 @@ struct Document
 
     Tag* body_tag = nullptr;
 
-    std::unordered_map<std::string, Tag*, string_hash, std::equal_to<>>
+    std::unordered_map<std::string, Tag*, yk::string_hash, std::equal_to<>>
     name_tag, id_tag, form_action_tag;
 
     Tag::callback_type default_callback_;
