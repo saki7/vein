@@ -23,7 +23,7 @@ inline MIME mime_type(std::filesystem::path const& path)
 {
     boost::locale::generator gen;
     gen.locale_cache_enabled(true);
-    auto const loc = gen(boost::locale::util::get_system_locale());
+    auto const loc = gen(boost::locale::util::get_system_locale(true));
     auto const ext = boost::locale::to_lower(path.extension().string(), loc);
 
     if (ext == ".htm")  return {"text/html; charset=utf-8"};
