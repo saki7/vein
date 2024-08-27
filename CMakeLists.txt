@@ -48,6 +48,12 @@ target_sources(
         src/pch.cpp
 )
 
+target_precompile_headers(
+    vein
+    PRIVATE
+        src/pch.h
+)
+
 target_compile_definitions(
     vein
     PUBLIC
