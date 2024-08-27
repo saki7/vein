@@ -32,11 +32,13 @@ target_sources(
             include/vein/html/Document.hpp
             include/vein/html/Tag.hpp
             include/vein/html/Template.hpp
-    PRIVATE
-        FILE_SET private_headers
-        TYPE HEADERS
-        BASE_DIRS src
-        FILES src/pch.cpp
+
+    # PRIVATE
+    #     FILE_SET private_headers
+    #     TYPE HEADERS
+    #     BASE_DIRS src
+    #     FILES src/pch.cpp
+
     PRIVATE
         src/Controller.cpp
         src/HTTPSession.cpp
@@ -45,7 +47,7 @@ target_sources(
         src/Server.cpp
         src/html/Tag.cpp
         src/html/Template.cpp
-        src/pch.cpp
+        # src/pch.cpp
 )
 
 target_precompile_headers(
@@ -54,18 +56,27 @@ target_precompile_headers(
         src/pch.h
 )
 
+target_include_directories(
+    vein
+    PUBLIC
+        include
+
+    PRIVATE
+        src
+)
+
 target_compile_definitions(
     vein
     PUBLIC
-    BOOST_STATIC_STRING_STANDALONE
-    BOOST_ALL_DYN_LINK
-    BOOST_OPTIONAL_USE_SINGLETON_DEFINITION_OF_NONE
-    SPDLOG_USE_STD_FORMAT
-    SPDLOG_COMPILED_LIB
-    U_CHARSET_IS_UTF8=1
-    UNISTR_FROM_CHAR_EXPLICIT=explicit
-    U_USING_ICU_NAMESPACE=0
-    U_NO_DEFAULT_INCLUDE_UTF_HEADERS=1
+        BOOST_STATIC_STRING_STANDALONE
+        BOOST_ALL_DYN_LINK
+        BOOST_OPTIONAL_USE_SINGLETON_DEFINITION_OF_NONE
+        SPDLOG_USE_STD_FORMAT
+        SPDLOG_COMPILED_LIB
+        U_CHARSET_IS_UTF8=1
+        UNISTR_FROM_CHAR_EXPLICIT=explicit
+        U_USING_ICU_NAMESPACE=0
+        U_NO_DEFAULT_INCLUDE_UTF_HEADERS=1
 )
 
 add_library(SG14 INTERFACE)
