@@ -192,18 +192,17 @@ struct CustomController : Controller
     using Controller::Controller;
 
 private:
-    std::unique_ptr<html::Tag>& local_html() const override { return local_html_; }
-    std::unique_ptr<html::Document>& local_doc() const override { return local_doc_; }
-
-    static thread_local std::unique_ptr<html::Tag> local_html_;
-    static thread_local std::unique_ptr<html::Document> local_doc_;
+    std::unique_ptr<html::Tag>& local_html() const override
+    {
+        static thread_local std::unique_ptr<html::Tag> local_html_;
+        return local_html_;
+    }
+    std::unique_ptr<html::Document>& local_doc() const override
+    {
+        static thread_local std::unique_ptr<html::Document> local_doc_;
+        return local_doc_;
+    }
 };
-
-template<class Derived>
-thread_local std::unique_ptr<html::Tag> CustomController<Derived>::local_html_;
-
-template<class Derived>
-thread_local std::unique_ptr<html::Document> CustomController<Derived>::local_doc_;
 
 }
 

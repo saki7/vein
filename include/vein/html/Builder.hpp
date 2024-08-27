@@ -3,6 +3,8 @@
 
 #include "vein/html/Tag.hpp"
 
+#include <yk/util/forward_like.hpp>
+
 #include <charconv>
 #include <array>
 
@@ -42,7 +44,7 @@ struct make_tag_content<PredefBuilder<type>>
     template<class T>
     static void apply(Tag& tag, T&& predef_builder)
     {
-        tag.contents().emplace_back(std::make_unique<Tag>(std::forward_like<T>(predef_builder.tag_)));
+        tag.contents().emplace_back(std::make_unique<Tag>(yk::forward_like<T>(predef_builder.tag_)));
     }
 };
 
@@ -84,12 +86,12 @@ public:
     template<class Self, class V>
     decltype(auto) id(this Self&& self, V&& v)
     {
-        return std::forward_like<Self>(self.attr("id", std::forward<V>(v)));
+        return yk::forward_like<Self>(self.attr("id", std::forward<V>(v)));
     }
     template<class Self, class V>
     decltype(auto) klass(this Self&& self, V&& v)
     {
-        return std::forward_like<Self>(self.attr("class", std::forward<V>(v)));
+        return yk::forward_like<Self>(self.attr("class", std::forward<V>(v)));
     }
 
     template<class Self, class F>
