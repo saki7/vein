@@ -10,6 +10,8 @@ set(CMAKE_CXX23_EXTENSION_COMPILE_OPTION "-std=gnu++2c")
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 
+find_package(Boost CONFIG REQUIRED COMPONENTS json url iostreams locale thread)
+
 add_library(vein STATIC)
 
 target_sources(
@@ -91,4 +93,18 @@ target_sources(
 add_subdirectory(modules/variant_view)
 add_subdirectory(modules/yk_util)
 
-target_link_libraries(vein PUBLIC SG14 yk::variant_view yk::yk_util)
+target_link_libraries(
+    vein
+    PUBLIC
+        SG14
+
+        yk::variant_view
+        yk::yk_util
+
+        Boost::headers
+        Boost::json
+        Boost::url
+        Boost::iostreams
+        Boost::locale
+        Boost::thread
+)
