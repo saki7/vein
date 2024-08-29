@@ -33,6 +33,15 @@ namespace vein::html {
 
 enum class TagType : int
 {
+    section,
+    aside,
+    article,
+
+    header,
+    footer,
+    menu,
+    nav,
+
     table,
     thead,
     tbody,
@@ -45,6 +54,7 @@ enum class TagType : int
     p,
     span,
     a,
+    br,
 
     ul,
     ol,
@@ -66,6 +76,15 @@ enum class TagType : int
 };
 
 inline constexpr auto tag_type_names_v = std::array{
+    "section",
+    "aside",
+    "article",
+
+    "header",
+    "footer",
+    "menu",
+    "nav",
+
     "table",
     "thead",
     "tbody",
@@ -78,6 +97,7 @@ inline constexpr auto tag_type_names_v = std::array{
     "p",
     "span",
     "a",
+    "br",
 
     "ul",
     "ol",

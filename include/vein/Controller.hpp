@@ -25,10 +25,14 @@ namespace vein {
 namespace beast = boost::beast;
 namespace http = beast::http;
 
+class Router;
+
 class Controller
 {
 public:
     virtual ~Controller();
+
+    void set_router(Router* router) { router_ = router; }
 
     void set_html(std::unique_ptr<html::Tag> html)
     {
@@ -44,11 +48,6 @@ public:
     void set_title(std::string const& title);
 
     void set_description(std::string const& description);
-
-    void set_canonical_url_origin(boost::urls::url const& canonical_url_origin)
-    {
-        canonical_url_origin_ = canonical_url_origin;
-    }
 
     void set_link_rel_canonical(std::optional<boost::urls::url> const& link_rel_canonical);
 
@@ -161,6 +160,8 @@ public:
 protected:
     Controller();
 
+    [[nodiscard]] Router* router() const noexcept { return router_; }
+
     [[nodiscard]] html::Document const* doc() const noexcept { return doc_.get(); }
     [[nodiscard]] html::Document* doc() noexcept { return doc_.get(); }
 
@@ -178,7 +179,7 @@ private:
     virtual std::unique_ptr<html::Tag>& local_html() const = 0;
     virtual std::unique_ptr<html::Document>& local_doc() const = 0;
 
-    boost::urls::url canonical_url_origin_;
+    mutable Router* router_ = nullptr;
 
     std::unique_ptr<html::Tag> html_;
     std::unique_ptr<html::Document> doc_;
@@ -189,6 +190,8 @@ template<class Derived>
 struct CustomController : Controller
 {
     friend Controller;
+
+protected:
     using Controller::Controller;
 
 private:

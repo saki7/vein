@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 
 #include "vein/Controller.hpp"
+#include "vein/Router.hpp"
 
 #include <yk/util/overloaded.hpp>
 #include <yk/variant/boost.hpp>
@@ -123,7 +124,7 @@ void Controller::set_link_rel_canonical(std::optional<boost::urls::url> const& l
         return;
     }
 
-    auto full_url = canonical_url_origin_;
+    auto full_url = router_->canonical_url_origin();
     full_url.set_encoded_path(link_rel_canonical->encoded_path());
     full_url.set_encoded_query(link_rel_canonical->encoded_query());
     //full_url.set_encoded_fragment(link_rel_canonical->encoded_fragment());

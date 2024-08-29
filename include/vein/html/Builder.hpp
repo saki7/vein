@@ -130,6 +130,14 @@ using html::TagPtr;
 using html::TagType;
 using html::ClassList;
 
+using section = PredefBuilder<TagType::section>;
+using aside   = PredefBuilder<TagType::aside>;
+using article = PredefBuilder<TagType::article>;
+using header  = PredefBuilder<TagType::header>;
+using footer  = PredefBuilder<TagType::footer>;
+using menu    = PredefBuilder<TagType::menu>;
+using nav     = PredefBuilder<TagType::nav>;
+
 using table   = PredefBuilder<TagType::table>;
 using thead   = PredefBuilder<TagType::thead>;
 using tbody   = PredefBuilder<TagType::tbody>;
@@ -142,6 +150,7 @@ using div    = PredefBuilder<TagType::div>;
 using p      = PredefBuilder<TagType::p>;
 using span   = PredefBuilder<TagType::span>;
 using a      = PredefBuilder<TagType::a>;
+using br     = PredefBuilder<TagType::br>;
 
 using ul     = PredefBuilder<TagType::ul>;
 using ol     = PredefBuilder<TagType::ol>;

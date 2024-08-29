@@ -69,6 +69,15 @@ public:
         return result;
     }
 
+    [[nodiscard]] boost::urls::url const& canonical_url_origin() const noexcept
+    {
+        return canonical_url_origin_;
+    }
+    void set_canonical_url_origin(boost::urls::url const& canonical_url_origin)
+    {
+        canonical_url_origin_ = canonical_url_origin;
+    }
+
     void route(PathMatcher matcher, std::unique_ptr<Controller> controller);
 
     [[nodiscard]] static bool is_safe_path(std::filesystem::path root, std::filesystem::path child)
@@ -261,6 +270,7 @@ public:
 
 private:
     std::filesystem::path public_root_ = ".";
+    boost::urls::url canonical_url_origin_;
 
     std::unordered_map<PathMatcher, std::unique_ptr<Controller>> controllers_;
 };
