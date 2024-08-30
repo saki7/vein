@@ -158,6 +158,7 @@ using li     = PredefBuilder<TagType::li>;
 
 using form   = PredefBuilder<TagType::form>;
 using input  = PredefBuilder<TagType::input>;
+using label  = PredefBuilder<TagType::label>;
 using button = PredefBuilder<TagType::button>;
 using main   = PredefBuilder<TagType::main>;
 using body   = PredefBuilder<TagType::body>;

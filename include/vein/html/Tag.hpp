@@ -62,6 +62,7 @@ enum class TagType : int
 
     form,
     input,
+    label,
     button,
     main,
     body,
@@ -105,6 +106,7 @@ inline constexpr auto tag_type_names_v = std::array{
 
     "form",
     "input",
+    "label",
     "button",
     "main",
     "body",
