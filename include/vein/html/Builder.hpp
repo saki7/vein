@@ -130,6 +130,13 @@ using html::TagPtr;
 using html::TagType;
 using html::ClassList;
 
+using h1      = PredefBuilder<TagType::h1>;
+using h2      = PredefBuilder<TagType::h2>;
+using h3      = PredefBuilder<TagType::h3>;
+using h4      = PredefBuilder<TagType::h4>;
+using h5      = PredefBuilder<TagType::h5>;
+using h6      = PredefBuilder<TagType::h6>;
+
 using section = PredefBuilder<TagType::section>;
 using aside   = PredefBuilder<TagType::aside>;
 using article = PredefBuilder<TagType::article>;

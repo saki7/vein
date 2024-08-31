@@ -2,6 +2,7 @@
 #define VEIN_HTML_TAG_HPP
 
 #include "vein/LibraryConfig.hpp"
+#include "vein/HTTPField.hpp"
 
 #include <yk/string_hash.hpp>
 #include <yk/util/overloaded.hpp>
@@ -33,6 +34,13 @@ namespace vein::html {
 
 enum class TagType : int
 {
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+
     section,
     aside,
     article,
@@ -77,6 +85,13 @@ enum class TagType : int
 };
 
 inline constexpr auto tag_type_names_v = std::array{
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+
     "section",
     "aside",
     "article",
@@ -172,7 +187,7 @@ using TagContent = std::variant<TagPtr, std::string>;
 class Tag
 {
 public:
-    using callback_type = std::function<http::status (boost::urls::url_view const&)>;
+    using callback_type = std::function<http::status (boost::urls::url_view const&, HTTPFields&)>;
 
     Tag() = default;
     Tag(Tag&&) = default;

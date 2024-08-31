@@ -3,6 +3,7 @@
 
 #include "vein/LibraryConfig.hpp"
 #include "vein/html/Document.hpp"
+#include "vein/HTTPField.hpp"
 
 #include "yk/allocator/default_init_allocator.hpp"
 
@@ -54,14 +55,14 @@ public:
     template<class F>
     void set_default_callback(F&& f)
     {
-        static_assert(std::is_invocable_r_v<http::status, F, boost::urls::url_view const&>);
+        static_assert(std::is_invocable_r_v<http::status, F, boost::urls::url_view const&, HTTPFields&>);
         doc_->default_callback_ = std::forward<F>(f);
     }
 
     template<class F>
     void set_form_callback(std::string_view form_id, F&& f)
     {
-        static_assert(std::is_invocable_r_v<http::status, F, boost::urls::url_view const&>);
+        static_assert(std::is_invocable_r_v<http::status, F, boost::urls::url_view const&, HTTPFields&>);
 
         auto const it = doc_->id_tag.find(form_id);
         if (it == doc_->id_tag.end()) {
@@ -88,6 +89,9 @@ public:
         auto status_code = http::status::ok;
         std::string response_body;
 
+        static thread_local HTTPFields http_fields;
+        http_fields.clear();
+
         try {
             reset_local_doc();
 
@@ -108,7 +112,7 @@ public:
                         std::cerr << "warning: the url does not match any form actions, and the default callback on the controller was unset" << std::endl;
                         break;
                     }
-                    status_code = doc_->default_callback_(url);
+                    status_code = doc_->default_callback_(url, http_fields);
 
                 } else {
                     auto& callback = form_it->second->callback();
@@ -116,11 +120,16 @@ public:
                         throw std::invalid_argument("callback was not set for this form");
                     }
 
-                    status_code = callback(url);
+                    status_code = callback(url, http_fields);
                 }
             } while (false);
 
-            response_body = "<!DOCTYPE html>\n" + local_html()->str();
+            if (auto const code = std::to_underlying(status_code); 300 <= code && code <= 399) {
+                // ...
+
+            } else {
+                response_body = "<!DOCTYPE html>\n" + local_html()->str();
+            }
 
         } catch (std::exception const& e) {
             std::cerr << "uncaught exception while dispatching controller: " << e.what() << std::endl;
@@ -134,8 +143,14 @@ public:
         }
 
         http::response<http::vector_body<char, yk::default_init_allocator<char>>> res{status_code, req.version()};
-        //res.set(http::field::server, "vein");
-        res.set(http::field::content_type, "text/html; charset=utf-8");
+
+        for (auto const& [field, value] : http_fields) {
+            res.set(field, value);
+        }
+        if (!http_fields.contains(http::field::content_type)) {
+            res.set(http::field::content_type, "text/html; charset=utf-8");
+        }
+
         res.keep_alive(req.keep_alive());
 
         if (response_body.empty()) {

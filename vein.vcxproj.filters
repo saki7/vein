@@ -92,5 +92,8 @@
     <ClInclude Include="include\vein\html\Document.hpp">
       <Filter>Header Files\vein\html</Filter>
     </ClInclude>
+    <ClInclude Include="include\vein\HTTPField.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

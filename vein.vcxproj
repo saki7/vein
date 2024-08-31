@@ -31,6 +31,7 @@
     <ClInclude Include="include\vein\html\Document.hpp" />
     <ClInclude Include="include\vein\html\Tag.hpp" />
     <ClInclude Include="include\vein\html\Template.hpp" />
+    <ClInclude Include="include\vein\HTTPField.hpp" />
     <ClInclude Include="include\vein\HTTPSession.hpp" />
     <ClInclude Include="include\vein\LibraryConfig.hpp" />
     <ClInclude Include="include\vein\Listener.hpp" />
