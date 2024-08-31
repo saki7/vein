@@ -124,10 +124,11 @@ void Controller::set_link_rel_canonical(std::optional<boost::urls::url> const& l
         return;
     }
 
-    auto full_url = router_->canonical_url_origin();
-    full_url.set_encoded_path(link_rel_canonical->encoded_path());
-    full_url.set_encoded_query(link_rel_canonical->encoded_query());
-    //full_url.set_encoded_fragment(link_rel_canonical->encoded_fragment());
+    auto full_url = *link_rel_canonical;
+    full_url.set_scheme(router_->canonical_url_origin().scheme());
+    full_url.set_encoded_authority(router_->canonical_url_origin().encoded_authority());
+    full_url.normalize();
+
     local_doc()->link_rel_canonical_tag->attrs()["href"] = std::string{full_url.c_str()};
 }
 
