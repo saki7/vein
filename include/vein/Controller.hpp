@@ -95,12 +95,12 @@ public:
         try {
             reset_local_doc();
 
-            for (auto const& param : url.params()) {
-                if (!param.has_value) continue;
-                if (auto it = local_doc()->name_tag.find(param.key); it != local_doc()->name_tag.end()) {
-                    it->second->attrs()["value"] = param.value;
-                }
-            }
+            //for (auto const& param : url.params()) {
+            //    if (!param.has_value) continue;
+            //    if (auto it = local_doc()->name_tag.find(param.key); it != local_doc()->name_tag.end()) {
+            //        it->second->attrs()["value"] = param.value;
+            //    }
+            //}
 
             auto const form_action = url.path();
 
