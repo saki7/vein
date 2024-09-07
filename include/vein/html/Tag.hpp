@@ -4,7 +4,7 @@
 #include "vein/LibraryConfig.hpp"
 #include "vein/HTTPField.hpp"
 
-#include <yk/string_hash.hpp>
+#include <yk/hash/string_hash.hpp>
 #include <yk/util/overloaded.hpp>
 #include <yk/variant/std.hpp>
 

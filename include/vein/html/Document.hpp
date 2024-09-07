@@ -4,7 +4,7 @@
 #include "vein/LibraryConfig.hpp"
 #include "vein/html/Tag.hpp"
 
-#include <yk/string_hash.hpp>
+#include <yk/hash/string_hash.hpp>
 
 #include <unordered_map>
 #include <string>
