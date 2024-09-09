@@ -19,7 +19,7 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PreprocessorDefinitions>BOOST_STATIC_STRING_STANDALONE;BOOST_ALL_DYN_LINK;BOOST_OPTIONAL_USE_SINGLETON_DEFINITION_OF_NONE;SPDLOG_USE_STD_FORMAT;SPDLOG_COMPILED_LIB;U_CHARSET_IS_UTF8=1;UNISTR_FROM_CHAR_EXPLICIT=explicit;U_USING_ICU_NAMESPACE=0;U_NO_DEFAULT_INCLUDE_UTF_HEADERS=1;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BOOST_STATIC_STRING_STANDALONE;BOOST_ALL_DYN_LINK;BOOST_OPTIONAL_USE_SINGLETON_DEFINITION_OF_NONE;SPDLOG_USE_STD_FORMAT;SPDLOG_COMPILED_LIB;U_CHARSET_IS_UTF8=1;UNISTR_FROM_CHAR_EXPLICIT=explicit;U_USING_ICU_NAMESPACE=0;U_NO_DEFAULT_INCLUDE_UTF_HEADERS=1;WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <UseStandardPreprocessor>true</UseStandardPreprocessor>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
